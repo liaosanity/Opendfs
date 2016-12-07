@@ -1,0 +1,11 @@
+Opendfs Version 1.x or 2.x
+
+If you want to change the release version, please modify the "PACKAGE_STRING" in scripts/version.
+
+INSTALL:
+    1. ./configure (default prefix is "/usr/local/opendfs")
+    2. make
+    3. make install
+
+the "scripts" directory include some files of building system, you can change some files to fill your wants.
+
