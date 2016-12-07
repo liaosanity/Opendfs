@@ -1,0 +1,9 @@
+Server server;
+server.daemon = ALLOW; 
+server.namenode_addr = "127.0.0.1:8000";
+server.error_log = ""; 
+server.log_level = LOG_INFO;
+server.recv_buff_len = 64KB;
+server.send_buff_len = 64KB;
+server.blk_sz = 256MB;
+server.blk_rep = 3;

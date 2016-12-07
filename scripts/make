@@ -1,0 +1,303 @@
+echo "creating $DFS_MAKEFILE"
+
+mkdir -p $DFS_OBJS/src/core $DFS_OBJS/src/common $DFS_OBJS/src/faio $DFS_OBJS/src/cfs $DFS_OBJS/src/namenode $DFS_OBJS/src/paxos $DFS_OBJS/src/datanode $DFS_OBJS/src/client
+
+dfs_objs_dir=$DFS_OBJS$dfs_regex_dirsep
+dfs_use_pch=`echo $DFS_USE_PCH | sed -e "s/\//$dfs_regex_dirsep/g"`
+
+cat << END                                                     > $DFS_MAKEFILE
+
+#CC =	$CC
+CC =	g++
+#CFLAGS = $CFLAGS
+#CFLAGS = -gdwarf-2 -std=c++11 -Wall -Werror -Wpointer-arith
+CFLAGS = -gdwarf-2 -std=c++11 -Wall -Wpointer-arith
+CPP =	$CPP
+LINK =	$LINK
+
+END
+
+# ALL_INCS, required by the addons and by OpenWatcom C precompiled headers
+
+dfs_incs=`echo $DFS_OBJS $LIB_INCS $CORE_INCS $COM_INCS $FAIO_INCS $CFS_INCS $NN_INCS $PA_INCS $DN_INCS $CLI_INCS\
+    | sed -e "s/  *\([^ ][^ ]*\)/$dfs_regex_cont$dfs_include_opt\1/g" \
+          -e "s/\//$dfs_regex_dirsep/g"`
+
+cat << END                                                    >> $DFS_MAKEFILE
+
+ALL_INCS = $dfs_include_opt$dfs_incs
+
+END
+
+nn_srcs="$CORE_SRCS $COM_SRCS $NN_SRCS $PA_SRCS"
+dn_srcs="$CORE_SRCS $COM_SRCS $FAIO_SRCS $CFS_SRCS $DN_SRCS"
+cli_srcs="$CORE_SRCS $COM_SRCS $CLI_SRCS"
+
+# the core dependences and include paths
+
+dfs_deps=`echo $LIB_DEPS $CORE_DEPS $COM_DEPS $FAIO_DEPS $CFS_DEPS $NN_DEPS $DN_DEPS $CLI_DEPS $DFS_AUTO_CONFIG_H $DFS_PCH \
+    | sed -e "s/  *\([^ ][^ ]*\)/$dfs_regex_cont\1/g" \
+          -e "s/\//$dfs_regex_dirsep/g"`
+
+cat << END                                                    >> $DFS_MAKEFILE
+
+CORE_DEPS = $nn_deps$dfs_deps
+
+CORE_INCS = $dfs_include_opt$dfs_incs
+
+END
+
+# default targets
+cat << END                          >> $DFS_MAKEFILE
+
+all: $DFS_OBJS${dfs_dirsep}namenode \
+     $DFS_OBJS${dfs_dirsep}datanode \
+     $DFS_OBJS${dfs_dirsep}dfscli
+
+END
+
+########################################################################
+
+nn_srcs=`echo $nn_srcs | sed -e "s/\//$dfs_regex_dirsep/g"`
+dn_srcs=`echo $dn_srcs | sed -e "s/\//$dfs_regex_dirsep/g"`
+cli_srcs=`echo $cli_srcs | sed -e "s/\//$dfs_regex_dirsep/g"`
+
+nn_objs=`echo $nn_srcs \
+    | sed -e "s#\([^ ]*\.\)cpp#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)cc#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)c#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)S#$DFS_OBJS\/\1$dfs_objext#g"`
+
+dn_objs=`echo $dn_srcs \
+    | sed -e "s#\([^ ]*\.\)cpp#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)cc#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)c#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)S#$DFS_OBJS\/\1$dfs_objext#g"`
+
+cli_objs=`echo $cli_srcs \
+    | sed -e "s#\([^ ]*\.\)cpp#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)cc#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)c#$DFS_OBJS\/\1$dfs_objext#g" \
+          -e "s#\([^ ]*\.\)S#$DFS_OBJS\/\1$dfs_objext#g"`
+
+#nn_deps=`echo $nn_objs $LINK_DEPS \
+#    | sed -e "s/  *\([^ ][^ ]*\)/$dfs_regex_cont\1/g" \
+#          -e "s/\//$dfs_regex_dirsep/g"`
+#
+#dn_deps=`echo $dn_objs $LINK_DEPS \
+#    | sed -e "s/  *\([^ ][^ ]*\)/$dfs_regex_cont\1/g" \
+#          -e "s/\//$dfs_regex_dirsep/g"`
+#
+#dfs_objs=`echo $nn_objs $dn_objs \
+#dfs_objs=`echo $nn_objs \
+#    | sed -e "s/  *\([^ ][^ ]*\)/$dfs_long_regex_cont\1/g" \
+#          -e "s/\//$dfs_regex_dirsep/g"`
+#
+if test -n "$DFS_LD_OPT$CORE_LIBS"; then
+    dfs_libs=`echo $DFS_LD_OPT $CORE_LIBS \
+        | sed -e "s/\//$dfs_regex_dirsep/g" -e "s/^/$dfs_long_regex_cont/"`
+fi
+
+dfs_link=${CORE_LINK:+`echo $CORE_LINK \
+    | sed -e "s/\//$dfs_regex_dirsep/g" -e "s/^/$dfs_long_regex_cont/"`}
+
+cat << END                                                    >> $DFS_MAKEFILE
+
+END
+
+###############################################################################
+# the core sources
+
+dfs_cc="\$(CC) $dfs_compile_opt \$(CFLAGS) \$(ALL_INCS)"
+
+for dfs_src in $CORE_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done 
+
+###############################################################################
+# the common sources
+
+dfs_cc="\$(CC) $dfs_compile_opt \$(CFLAGS) \$(ALL_INCS)"
+
+for dfs_src in $COM_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done 
+
+###############################################################################
+# the faio sources
+
+dfs_cc="\$(CC) $dfs_compile_opt \$(CFLAGS) \$(ALL_INCS)"
+
+for dfs_src in $FAIO_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done 
+
+###############################################################################
+# the cfs sources
+
+dfs_cc="\$(CC) $dfs_compile_opt \$(CFLAGS) \$(ALL_INCS)"
+
+for dfs_src in $CFS_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done 
+
+##############################################################################
+# build namenode
+
+for dfs_src in $PA_SRCS
+do 
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+	
+done
+
+for dfs_src in $NN_SRCS
+do 
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+	
+done
+
+cat << END                        >>$DFS_MAKEFILE
+
+$DFS_OBJS${dfs_dirsep}namenode: $nn_objs 
+	g++ -o $DFS_OBJS${dfs_dirsep}namenode $^ $DFS_LIBS
+
+END
+
+##############################################################################
+# build datanode
+
+for dfs_src in $DN_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done
+
+cat << END                        >>$DFS_MAKEFILE
+
+$DFS_OBJS${dfs_dirsep}datanode: $dn_objs
+	g++ -o $DFS_OBJS${dfs_dirsep}datanode $^ $DFS_LIBS
+
+END
+
+##############################################################################
+# build dfscli
+
+for dfs_src in $CLI_SRCS
+do
+    dfs_src=`echo $dfs_src | sed -e "s/\//$dfs_regex_dirsep/g"`
+    dfs_obj=`echo $dfs_src \
+        | sed -e "s#^\(.*\.\)cpp\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)cc\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)c\\$#$dfs_objs_dir\1$dfs_objext#g" \
+              -e "s#^\(.*\.\)S\\$#$dfs_objs_dir\1$dfs_objext#g"`
+
+    cat << END                                                >> $DFS_MAKEFILE
+
+$dfs_obj: $dfs_src
+	$dfs_cc$dfs_tab$dfs_objout$dfs_obj$dfs_tab$dfs_src$DFS_AUX
+
+END
+
+done
+
+cat << END                        >>$DFS_MAKEFILE
+
+$DFS_OBJS${dfs_dirsep}dfscli: $cli_objs
+	g++ -o $DFS_OBJS${dfs_dirsep}dfscli $^ $DFS_LIBS
+
+END
+
+##############################################################################
+# build xxx 

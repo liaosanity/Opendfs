@@ -1,0 +1,66 @@
+LINK="\$(CC)"
+
+dfs_include_opt="-I "
+dfs_compile_opt="-c"
+dfs_objout="-o "
+dfs_binout="-o "
+dfs_objext="o"
+dfs_binext=
+
+dfs_long_start=
+dfs_long_end=
+
+dfs_regex_dirsep="\/"
+dfs_dirsep='/'
+
+dfs_regex_cont=' \\\
+	'
+dfs_cont=' \
+	'
+dfs_tab=' \
+		'
+dfs_spacer=
+
+dfs_long_regex_cont=$dfs_regex_cont
+dfs_long_cont=$dfs_cont
+
+dfs_feature="C compiler"
+dfs_feature_name=
+dfs_feature_run=yes
+dfs_feature_incs=
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test=
+
+
+. scripts/feature
+
+if [ $dfs_found = no ]; then
+    echo
+    echo $0: error: C compiler $CC is not found
+    echo
+    exit 1
+fi
+
+if `$CC -v 2>&1 | grep 'gcc version' >/dev/null 2>&1`; then
+    DFS_CC_NAME=gcc
+    echo " + using GNU C compiler"
+fi
+
+if test -n "$CFLAGS"; then
+
+    CC_TEST_FLAGS="$CFLAGS $DFS_CC_OPT"
+
+else
+    
+    case $DFS_CC_NAME in
+        gcc)
+            . scripts/gcc
+        ;;
+    esac
+
+    CC_TEST_FLAGS="$CC_TEST_FLAGS $DFS_CC_OPT"
+    
+fi
+    
+. scripts/headers

@@ -1,0 +1,95 @@
+PREFIX=
+DEBUG_MEM=
+NO_LICENSE=off
+DFS_SBIN_PATH=
+DFS_BIN_PATH=
+DFS_CONF_PATH=
+DFS_LOG_PATH=
+PID_FILE=
+DFS_TEMP_PATH=
+DFS_SHARE_PATH=
+
+
+CC=${CC:-cc}
+CPP=
+DFS_OBJS=objs
+
+DFS_DEBUG=NO
+DFS_CC_OPT=
+DFS_LD_OPT=
+CPU=NO
+
+DFS_RPATH=NO
+
+DFS_TEST_BUILD_EPOLL=NO
+
+DFS_PLATFORM=
+
+EVENT_FOUND=NO
+
+
+DFS_IPV6=NO
+
+USE_PCRE=NO
+PCRE=NONE
+PCRE_OPT=
+PCRE_CONF_OPT=
+PCRE_JIT=NO
+
+USE_OPENSSL=NO
+OPENSSL=NONE
+
+USE_MD5=NO
+MD5=NONE
+MD5_OPT=
+MD5_ASM=NO
+
+USE_SHA1=NO
+SHA1=NONE
+SHA1_OPT=
+SHA1_ASM=NO
+
+USE_ZLIB=NO
+ZLIB=NONE
+ZLIB_OPT=
+ZLIB_ASM=NO
+
+USE_PERL=NO
+DFS_PERL=perl
+
+USE_LIBXSLT=NO
+USE_LIBGD=NO
+
+DFS_CPU_CACHE_LINE=
+
+opt=
+
+for option
+do
+    opt="$opt `echo $option | sed -e \"s/\(--[^=]*=\)\(.* .*\)/\1'\2'/\"`"
+
+    case "$option" in
+        -*=*) value=`echo "$option" | sed -e 's/[-_a-zA-Z0-9]*=//'` ;;
+           *) value="" ;;
+    esac
+    
+    case "$option" in
+
+	    --prefix=)                       PREFIX="!"             ;;
+        --prefix=*)                      PREFIX="$value"        ;;
+        --debug_mem=)                    DEBUG_MEM="off"        ;;
+        --debug_mem=*)                   DEBUG_MEM="$value"     ;;
+        --without_liscense=)             NO_LICENSE="!"        ;;
+        --without_liscense=*)            NO_LICENSE="$value"    ;;
+
+    *)
+        echo "$0: error: invalid option \"$option\""
+        exit 1
+    ;;
+    esac
+done
+
+if [ ".$PREFIX" = "." ]; then
+    PREFIX=/usr/local/opendfs
+fi
+

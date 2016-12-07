@@ -1,0 +1,69 @@
+DFS_TEMP_PATH=${PREFIX}/temp
+DFS_SHARE_PATH=${PREFIX}/share
+DFS_SBIN_PATH=${PREFIX}/sbin
+DFS_BIN_PATH=${PREFIX}/bin
+DFS_LOG_PATH=${PREFIX}/logs
+DFS_CONF_PATH=${PREFIX}/etc
+
+PID_FILE=${DFS_LOG_PATH}/namenode.pid
+
+have=PID_FILE value="\"$PID_FILE\"" . scripts/define
+
+cat << END                                                    >> $DFS_MAKEFILE
+
+install: $DFS_OBJS${dfs_dirsep}namenode${dfs_binext}
+	
+	test -d '\$(DESTDIR)$PREFIX' || mkdir -p '\$(DESTDIR)$PREFIX'
+
+	test -d '\$(DESTDIR)$DFS_TEMP_PATH' || mkdir -p '\$(DESTDIR)$DFS_TEMP_PATH'
+
+	test -d '\$(DESTDIR)$DFS_SHARE_PATH' || mkdir -p '\$(DESTDIR)$DFS_SHARE_PATH'
+
+	test -d '\$(DESTDIR)$DFS_SBIN_PATH' || mkdir -p '\$(DESTDIR)$DFS_SBIN_PATH'
+
+	test -d '\$(DESTDIR)$DFS_BIN_PATH' || mkdir -p '\$(DESTDIR)$DFS_BIN_PATH'
+
+	test -d '\$(DESTDIR)$DFS_LOG_PATH' || mkdir -p '\$(DESTDIR)$DFS_LOG_PATH'
+
+	test -d '\$(DESTDIR)$DFS_CONF_PATH' || mkdir -p '\$(DESTDIR)$DFS_CONF_PATH'
+
+	touch '\$(DESTDIR)$PID_FILE'
+
+	
+	test -f '\$(DESTDIR)$DFS_CONF_PATH/namenode.conf' || cp  etc/namenode.conf '\$(DESTDIR)$DFS_CONF_PATH'
+	
+	test -f '\$(DESTDIR)$DFS_CONF_PATH/namenode.conf.default' || \
+	    cp  etc/namenode.conf.default '\$(DESTDIR)$DFS_CONF_PATH'
+
+	test ! -f '\$(DESTDIR)$DFS_SBIN_PATH/namenode' || mv '\$(DESTDIR)$DFS_SBIN_PATH/namenode' \
+			'\$(DESTDIR)$DFS_SBIN_PATH/namenode.old'
+			
+	cp  $DFS_OBJS/namenode '\$(DESTDIR)$DFS_SBIN_PATH'
+
+	test ! -f '\$(DESTDIR)$DFS_SBIN_PATH/datanode' || mv '\$(DESTDIR)$DFS_SBIN_PATH/datanode' \
+			'\$(DESTDIR)$DFS_SBIN_PATH/datanode.old'
+			
+	cp  $DFS_OBJS/datanode '\$(DESTDIR)$DFS_SBIN_PATH'
+
+	test ! -f '\$(DESTDIR)$DFS_SBIN_PATH/dfscli' || mv '\$(DESTDIR)$DFS_SBIN_PATH/dfscli' \
+			'\$(DESTDIR)$DFS_SBIN_PATH/dfscli.old'
+			
+	cp  $DFS_OBJS/dfscli '\$(DESTDIR)$DFS_SBIN_PATH'
+
+END
+
+
+# create Makefile
+
+cat << END >> Makefile
+
+build:
+	\$(MAKE) -f $DFS_MAKEFILE
+
+
+install:
+	\$(MAKE) -f $DFS_MAKEFILE install
+
+
+END
+

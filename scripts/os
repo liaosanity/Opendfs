@@ -1,0 +1,49 @@
+case "$DFS_PLATFORM" in
+
+    Linux:*)
+        . scripts/linux
+    ;;
+
+    *)
+
+    ;;
+
+esac
+
+
+case "$DFS_MACHINE" in
+
+    i386 | i686 | i86pc)
+        have=DFS_HAVE_NONALIGNED . scripts/have
+        DFS_MACH_CACHE_LINE=32
+    ;;
+
+    amd64 | x86_64)
+        have=DFS_HAVE_NONALIGNED . scripts/have
+        DFS_MACH_CACHE_LINE=64
+    ;;
+
+    sun4u | sun4v | sparc | sparc64)
+        have=DFS_ALIGNMENT value=16 . scripts/define
+        # TODO
+        DFS_MACH_CACHE_LINE=64
+    ;;
+
+    ia64 )
+        have=DFS_ALIGNMENT value=16 . scripts/define
+        # TODO
+        DFS_MACH_CACHE_LINE=64
+    ;;
+
+    *)
+        have=DFS_ALIGNMENT value=16 . scripts/define
+        DFS_MACH_CACHE_LINE=32
+    ;;
+
+esac
+
+if test -z "$DFS_CPU_CACHE_LINE"; then
+    DFS_CPU_CACHE_LINE=$DFS_MACH_CACHE_LINE
+fi
+
+have=DFS_CPU_CACHE_LINE value=$DFS_CPU_CACHE_LINE . scripts/define

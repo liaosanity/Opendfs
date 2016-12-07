@@ -1,0 +1,5 @@
+have=PACKAGE value="\"namenode\"" . scripts/define
+have=PACKAGE_BUGREPORT value="\"liaosanity@gmail.com\"" . scripts/define
+have=PACKAGE_NAME value="\"namenode\"" . scripts/define
+have=PACKAGE_STRING value="\"0.1\"" . scripts/define
+have=PACKAGE_TARNAME value="\"namenode\"" . scripts/define

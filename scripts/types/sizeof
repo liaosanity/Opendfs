@@ -1,0 +1,84 @@
+
+# Copyright (C) Igor Sysoev
+# Copyright (C) Nginx, Inc.
+
+
+echo $dfs_n "checking for $dfs_type size ...$dfs_c"
+
+cat << END >> $DFS_AUTOCONF_ERR
+
+----------------------------------------
+checking for $dfs_type size
+
+END
+
+dfs_size=
+
+cat << END > $DFS_AUTOTEST.c
+
+#include <sys/types.h>
+#include <sys/time.h>
+$DFS_INCLUDE_UNISTD_H
+#include <signal.h>
+#include <stdio.h>
+#include <sys/resource.h>
+$DFS_INCLUDE_INTTYPES_H
+$DFS_INCLUDE_AUTO_CONFIG_H
+
+int main() {
+    printf("%d", (int) sizeof($dfs_type));
+    return 0;
+}
+
+END
+
+
+dfs_test="$CC $CC_TEST_FLAGS $CC_AUX_FLAGS \
+          -o $DFS_AUTOTEST $DFS_AUTOTEST.c $DFS_LD_OPT $dfs_feature_libs"
+
+eval "$dfs_test >> $DFS_AUTOCONF_ERR 2>&1"
+
+
+if [ -x $DFS_AUTOTEST ]; then
+    dfs_size=`$DFS_AUTOTEST`
+    echo " $dfs_size bytes"
+fi
+
+
+rm -f $DFS_AUTOTEST
+
+
+case $dfs_size in
+    4)
+        if [ "$dfs_type"="long" ]; then
+            dfs_max_value=2147483647L
+        else
+            dfs_max_value=2147483647
+        fi
+
+        dfs_max_len='(sizeof("-2147483648") - 1)'
+    ;;
+
+    8)
+        if [ "$dfs_type"="long long" ]; then
+            dfs_max_value=9223372036854775807LL
+        else
+            dfs_max_value=9223372036854775807L
+        fi
+
+        dfs_max_len='(sizeof("-9223372036854775808") - 1)'
+    ;;
+
+    *)
+        echo
+        echo "$0: error: can not detect $dfs_type size"
+
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+        cat $DFS_AUTOTEST.c  >> $DFS_AUTOCONF_ERR
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+        echo $dfs_test       >> $DFS_AUTOCONF_ERR
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+
+        exit 1
+esac
+

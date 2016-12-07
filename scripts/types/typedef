@@ -1,0 +1,77 @@
+
+# Copyright (C) Igor Sysoev
+# Copyright (C) Nginx, Inc.
+
+
+echo $dfs_n "checking for $dfs_type ...$dfs_c"
+
+cat << END >> $DFS_AUTOCONF_ERR
+
+----------------------------------------
+checking for $dfs_type
+
+END
+
+dfs_found=no
+
+for dfs_try in $dfs_type $dfs_types
+do
+
+    cat << END > $DFS_AUTOTEST.c
+
+#include <sys/types.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <netinet/in.h>
+$DFS_INCLUDE_INTTYPES_H
+
+int main() {
+    $dfs_try i = 0;
+    return (int) i;
+}
+
+END
+
+    dfs_test="$CC $CC_TEST_FLAGS $CC_AUX_FLAGS \
+              -o $DFS_AUTOTEST $DFS_AUTOTEST.c $DFS_LD_OPT $dfs_feature_libs"
+
+    eval "$dfs_test >> $DFS_AUTOCONF_ERR 2>&1"
+
+    if [ -x $DFS_AUTOTEST ]; then
+        if [ $dfs_try = $dfs_type ]; then
+            echo " found"
+            dfs_found=yes
+        else
+            echo ", $dfs_try used"
+            dfs_found=$dfs_try
+        fi
+    fi
+
+    rm -f $DFS_AUTOTEST
+
+    if [ $dfs_found = no ]; then
+        echo $dfs_n " $dfs_try not found$dfs_c"
+
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+        cat $DFS_AUTOTEST.c  >> $DFS_AUTOCONF_ERR
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+        echo $dfs_test       >> $DFS_AUTOCONF_ERR
+        echo "----------"    >> $DFS_AUTOCONF_ERR
+
+    else
+        break
+    fi
+done
+
+if [ $dfs_found = no ]; then
+    echo
+    echo "$0: error: can not define $dfs_type"
+
+    exit 1
+fi
+
+if [ $dfs_found != yes ]; then
+    echo "typedef $dfs_found  $dfs_type;"   >> $DFS_AUTO_CONFIG_H
+fi

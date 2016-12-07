@@ -1,0 +1,8 @@
+dfs_include="unistd.h";      . scripts/include
+dfs_include="inttypes.h";    . scripts/include
+dfs_include="limits.h";      . scripts/include
+dfs_include="sys/filio.h";   . scripts/include
+dfs_include="sys/param.h";   . scripts/include
+dfs_include="sys/mount.h";   . scripts/include
+dfs_include="sys/statvfs.h"; . scripts/include
+dfs_include="crypt.h";       . scripts/include

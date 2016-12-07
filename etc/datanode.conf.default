@@ -1,0 +1,16 @@
+Server server;
+server.daemon = ALLOW;
+server.workers = 8;
+server.connections = 65536;
+server.bind_for_cli = "0.0.0.0:8100";
+server.ns_srv = "0.0.0.0:8001"; # ns0_ip:ns0_port,ns1_ip:ns1_port,ns2_ip:ns2_port,...
+server.data_dir = "/data/block"; # /data01/block,/data02/block,/data03/block,...
+server.error_log = "|cronolog /data/datanode/logs/%Y%m%d%H_error.log";
+server.pid_file = "/data/datanode/pid/datanode.pid";
+server.coredump_dir = "/data/datanode/coredump/";
+server.log_level = LOG_INFO;
+server.recv_buff_len = 64KB;
+server.send_buff_len = 64KB;
+server.max_tqueue_len = 1000;
+server.heartbeat_interval = 3; # second
+server.block_report_interval = 3600; # second

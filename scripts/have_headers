@@ -1,0 +1,7 @@
+cat << END >> $DFS_AUTO_HEADERS_H
+
+#ifndef $have
+#define $have  1
+#endif
+
+END

@@ -1,0 +1,220 @@
+LIB_INCS="include"
+LIB_DEPS=
+
+CORE_INCS="src/core"
+CORE_DEPS="src/core/dfs_array.h \
+           src/core/dfs_buffer.h \
+           src/core/dfs_chain.h \
+           src/core/dfs_channel.h \
+           src/core/dfs_commpool_allocator.h \
+           src/core/dfs_commpool.h \
+           src/core/dfs_conf_base.h \
+           src/core/dfs_conf.h \
+           src/core/dfs_conn.h \
+           src/core/dfs_conn_listen.h \
+           src/core/dfs_conn_pool.h \
+           src/core/dfs_epoll.h \
+           src/core/dfs_error_log.h \
+           src/core/dfs_event.h \
+           src/core/dfs_event_timer.h \
+           src/core/dfs_half_life_mempool.h \
+           src/core/dfs_hashtable.h \
+           src/core/dfs_ipc.h \
+           src/core/dfs_list.h \
+           src/core/dfs_lock.h \
+           src/core/dfs_math.h \
+           src/core/dfs_mblks.h \
+           src/core/dfs_mem_allocator.h \
+           src/core/dfs_memory.h \
+           src/core/dfs_memory_pool.h \
+           src/core/dfs_mempool_allocator.h \
+           src/core/dfs_notice.h \
+           src/core/dfs_pipe.h \
+           src/core/dfs_queue.h \
+           src/core/dfs_rbtree.h \
+           src/core/dfs_shmem_allocator.h \
+           src/core/dfs_shmem.h \
+           src/core/dfs_slabs.h \
+           src/core/dfs_string.h \
+           src/core/dfs_sys.h \
+           src/core/dfs_sysio.h \
+           src/core/dfs_time.h" 
+
+CORE_SRCS="src/core/dfs_array.c \
+           src/core/dfs_buffer.c \
+           src/core/dfs_chain.c \
+           src/core/dfs_channel.c \
+           src/core/dfs_commpool.c \
+           src/core/dfs_commpool_allocator.c \
+           src/core/dfs_conf_base.c \
+           src/core/dfs_conf.c \
+           src/core/dfs_conn.c \
+           src/core/dfs_conn_listen.c \
+           src/core/dfs_conn_pool.c \
+           src/core/dfs_epoll.c \
+           src/core/dfs_error_log.c \
+           src/core/dfs_event.c \
+           src/core/dfs_event_timer.c \
+           src/core/dfs_half_life_mempool.c \
+           src/core/dfs_hashtable.c \
+           src/core/dfs_ipc.c \
+           src/core/dfs_list.c \
+           src/core/dfs_lock.c \
+           src/core/dfs_math.c \
+           src/core/dfs_mblks.c \
+           src/core/dfs_mem_allocator.c \
+           src/core/dfs_memory.c \
+           src/core/dfs_memory_pool.c \
+           src/core/dfs_mempool_allocator.c \
+           src/core/dfs_notice.c \
+           src/core/dfs_pipe.c \
+           src/core/dfs_queue.c \
+           src/core/dfs_rbtree.c \
+           src/core/dfs_shmem_allocator.c \
+           src/core/dfs_shmem.c \
+           src/core/dfs_slabs.c \
+           src/core/dfs_string.c \
+           src/core/dfs_sys.c \
+           src/core/dfs_sysio.c \
+           src/core/dfs_time.c" 
+
+COM_INCS="src/common"
+COM_DEPS="src/common/dfs_task_cmd.h \
+          src/common/dfs_task_codec.h \
+          src/common/dfs_task.h \
+          src/common/fs_permission.h"
+
+COM_SRCS="src/common/dfs_task_codec.c \
+          src/common/dfs_task.c \
+          src/common/fs_permission.c"
+
+FAIO_INCS="src/faio"
+FAIO_DEPS="src/faio/faio_atomic_lock.h \
+           src/faio/faio_data_manager.h \
+           src/faio/faio_error.h \
+           src/faio/faio_handler_manager.h \
+           src/faio/faio_manager.h \
+           src/faio/faio_notifier_manager.h \
+           src/faio/faio_queue.h \
+           src/faio/faio_thread.h \
+           src/faio/faio_worker_manager.h"
+
+FAIO_SRCS="src/faio/faio_atomic_lock.c \
+           src/faio/faio_data_manager.c \
+           src/faio/faio_error.c \
+           src/faio/faio_handler_manager.c \
+           src/faio/faio_manager.c \
+           src/faio/faio_notifier_manager.c \
+           src/faio/faio_thread.c \
+           src/faio/faio_worker_manager.c"
+
+CFS_INCS="src/cfs"
+CFS_DEPS="src/cfs/cfs_ecb.h \
+          src/cfs/cfs_eio.h \
+          src/cfs/cfs_faio.h \
+          src/cfs/cfs_fio.h \
+          src/cfs/cfs.h \
+          src/cfs/cfs_xthread.h"
+
+CFS_SRCS="src/cfs/cfs_eio.c \
+          src/cfs/cfs_faio.c \
+          src/cfs/cfs_fio.c \
+          src/cfs/cfs.c" 
+
+NN_INCS="src/namenode"
+NN_DEPS="src/namenode/nn_main.h \
+	 src/namenode/nn_process.h \
+         src/namenode/nn_worker_process.h \
+         src/namenode/nn_conf.h \
+         src/namenode/nn_request.h \
+         src/namenode/nn_error_log.h \
+         src/namenode/nn_net_response_handler.h \
+         src/namenode/nn_task_handler.h \
+         src/namenode/nn_task_queue.h \
+         src/namenode/nn_time.h \
+         src/namenode/nn_conn_event.h \
+         src/namenode/nn_cycle.h \
+         src/namenode/nn_signal.h \
+         src/namenode/nn_thread.h \
+         src/namenode/nn_module.h \
+         src/namenode/nn_rpc_server.h \
+         src/namenode/nn_paxos.h \
+         src/namenode/nn_file_index.h \
+         src/namenode/nn_dn_index.h \
+         src/namenode/nn_blk_index.h" 
+
+NN_SRCS="src/namenode/nn_main.c \
+         src/namenode/nn_process.c \
+         src/namenode/nn_worker_process.c \
+         src/namenode/nn_conf.c \
+         src/namenode/nn_request.c \
+         src/namenode/nn_error_log.c \
+         src/namenode/nn_net_response_handler.c \
+         src/namenode/nn_task_handler.c \
+         src/namenode/nn_task_queue.c \
+         src/namenode/nn_time.c \
+         src/namenode/nn_conn_event.c \
+         src/namenode/nn_cycle.c \
+         src/namenode/nn_signal.c \
+         src/namenode/nn_thread.c \
+         src/namenode/nn_module.c \
+         src/namenode/nn_rpc_server.c \
+         src/namenode/nn_paxos.c \
+         src/namenode/nn_file_index.c \
+         src/namenode/nn_dn_index.c \
+         src/namenode/nn_blk_index.c" 
+
+PA_INCS="src/paxos"
+PA_DEPS="src/paxos/EditlogSM.h \
+         src/paxos/FSEditlog.h \
+         src/paxos/phxeditlog.pb.h"
+
+PA_SRCS="src/paxos/EditlogSM.cpp \
+         src/paxos/FSEditlog.cpp \
+         src/paxos/phxeditlog.pb.cpp"
+
+DN_INCS="src/datanode"
+DN_DEPS="src/datanode/dn_main.h \
+         src/datanode/dn_cycle.h \
+         src/datanode/dn_signal.h \
+         src/datanode/dn_module.h \
+         src/datanode/dn_process.h \
+         src/datanode/dn_conf.h \
+         src/datanode/dn_time.h \
+         src/datanode/dn_error_log.h \
+         src/datanode/dn_thread.h \
+         src/datanode/dn_worker_process.h \
+         src/datanode/dn_conn_event.h \
+         src/datanode/dn_ns_service.h \
+         src/datanode/dn_data_storage.h \
+         src/datanode/dn_request.h"
+
+DN_SRCS="src/datanode/dn_main.c \
+         src/datanode/dn_cycle.c \
+         src/datanode/dn_signal.c \
+         src/datanode/dn_module.c \
+         src/datanode/dn_process.c \
+         src/datanode/dn_conf.c \
+         src/datanode/dn_time.c \
+         src/datanode/dn_error_log.c \
+         src/datanode/dn_thread.c \
+         src/datanode/dn_worker_process.c \
+         src/datanode/dn_conn_event.c \
+         src/datanode/dn_ns_service.c \
+         src/datanode/dn_data_storage.c \
+         src/datanode/dn_request.c"
+
+CLI_INCS="src/client"
+CLI_DEPS="src/client/dfscli_main.h \
+          src/client/dfscli_conf.h \
+          src/client/dfscli_cycle.h \
+          src/client/dfscli_put.h \
+          src/client/dfscli_get.h" 
+
+CLI_SRCS="src/client/dfscli_main.c \
+          src/client/dfscli_conf.c \
+          src/client/dfscli_cycle.c \
+          src/client/dfscli_put.c \
+          src/client/dfscli_get.c" 
+
+

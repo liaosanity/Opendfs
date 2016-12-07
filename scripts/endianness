@@ -1,0 +1,41 @@
+echo $dfs_n "checking for system byte ordering ...$dfs_c"
+echo >> $DFS_ERR
+echo "checking for system byte ordering" >> $DFS_ERR
+
+
+cat << END > $DFS_AUTOTEST.c
+
+int main() {
+    int i = 0x11223344;
+    char *p;
+
+    p = (char *) &i;
+    if (*p == 0x44) return 0;
+    return 1;
+}
+
+END
+
+dfs_test="$CC $CC_TEST_FLAGS $CC_AUX_FLAGS \
+          -o $DFS_AUTOTEST $DFS_AUTOTEST.c $DFS_LD_OPT $dfs_feature_libs"
+
+eval "$dfs_test >> $DFS_AUTOCONF_ERR 2>&1"
+
+if [ -x $DFS_AUTOTEST ]; then
+    if $DFS_AUTOTEST >/dev/null 2>&1; then
+        echo " little endian"
+        have=DFS_HAVE_LITTLE_ENDIAN . scripts/have
+    else
+        echo " big endian"
+    fi
+
+    rm $DFS_AUTOTEST*
+
+else
+    rm $DFS_AUTOTEST*
+
+    echo
+    echo "$0: error: cannot detect system byte ordering"
+    exit 1
+fi
+

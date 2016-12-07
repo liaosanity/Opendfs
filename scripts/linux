@@ -1,0 +1,724 @@
+dfs_spacer='
+'
+
+cc_aux_flags="$CC_AUX_FLAGS"
+CC_AUX_FLAGS="$cc_aux_flags -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+
+
+# Linux kernel version
+
+version=$((`uname -r \
+    | sed -n -e 's/^\([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/ \
+                                                 \1*256*256+\2*256+\3/p' \
+             -e 's/^\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1*256*256+\2*256/p'`))
+
+version=${version:-0}
+
+# posix_fadvise64() had been implemented in 2.5.60
+
+if [ $version -lt 132412 ]; then
+    have=DFS_HAVE_POSIX_FADVISE . scripts/nohave
+fi
+
+# epoll, EPOLLET version
+
+dfs_feature="epoll"
+dfs_feature_name="DFS_HAVE_EPOLL"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/epoll.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="int efd = 0;
+                  struct epoll_event ee;
+                  ee.events = EPOLLIN|EPOLLOUT|EPOLLET;
+                  ee.data.ptr = NULL;
+                  efd = epoll_create(100);
+                  if (efd == -1) return 1;"
+. scripts/feature
+
+if [ $dfs_found = yes ]; then
+    have=DFS_HAVE_CLEAR_EVENT . scripts/have
+    CORE_SRCS="$CORE_SRCS $EPOLL_SRCS"
+    EVENT_MODULES="$EVENT_MODULES $EPOLL_MODULE"
+    EVENT_FOUND=YES
+fi
+
+
+# sendfile()
+
+CC_AUX_FLAGS="$cc_aux_flags -D_GNU_SOURCE"
+dfs_feature="sendfile()"
+dfs_feature_name="DFS_HAVE_SENDFILE"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/sendfile.h>
+                  #include <errno.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="int s = 0, fd = 1;
+                  ssize_t n; off_t off = 0;
+                  n = sendfile(s, fd, &off, 1);
+                  if (n == -1 && errno == ENOSYS) return 1"
+. scripts/feature
+
+if [ $dfs_found = yes ]; then
+    CORE_SRCS="$CORE_SRCS $LINUX_SENDFILE_SRCS"
+fi
+
+
+# sendfile64()
+
+CC_AUX_FLAGS="$cc_aux_flags -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+dfs_feature="sendfile64()"
+dfs_feature_name="DFS_HAVE_SENDFILE64"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/sendfile.h>
+                  #include <errno.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="int s = 0, fd = 1;
+                  ssize_t n; off_t off = 0;
+                  n = sendfile(s, fd, &off, 1);
+                  if (n == -1 && errno == ENOSYS) return 1"
+. scripts/feature
+
+
+dfs_include="sys/prctl.h"; . scripts/include
+
+# prctl(PR_SET_DUMPABLE)
+
+dfs_feature="prctl(PR_SET_DUMPABLE)"
+dfs_feature_name="DFS_HAVE_PR_SET_DUMPABLE"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/prctl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) == -1) return 1"
+. scripts/feature
+
+
+# sched_setaffinity()
+
+dfs_feature="sched_setaffinity()"
+dfs_feature_name="DFS_HAVE_SCHED_SETAFFINITY"
+dfs_feature_run=no
+dfs_feature_incs="#include <sched.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="cpu_set_t mask;
+                  CPU_ZERO(&mask);
+                  sched_setaffinity(0, sizeof(cpu_set_t), &mask)"
+. scripts/feature
+
+
+# crypt_r()
+
+dfs_feature="crypt_r()"
+dfs_feature_name="DFS_HAVE_GNU_CRYPT_R"
+dfs_feature_run=no
+dfs_feature_incs="#include <crypt.h>"
+dfs_feature_path=
+dfs_feature_libs=-lcrypt
+dfs_feature_test="struct crypt_data  cd;
+                  crypt_r(\"key\", \"salt\", &cd);"
+. scripts/feature
+
+
+dfs_include="sys/vfs.h";     . scripts/include
+
+
+CC_AUX_FLAGS="$cc_aux_flags -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+
+dfs_feature="crypt()"
+dfs_feature_name=
+dfs_feature_run=no
+dfs_feature_incs=
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="crypt(\"test\", \"salt\");"
+. scripts/feature
+
+
+if [ $dfs_found = no ]; then
+
+    dfs_feature="crypt() in libcrypt"
+    dfs_feature_name=
+    dfs_feature_run=no
+    dfs_feature_incs=
+    dfs_feature_path=
+    dfs_feature_libs=-lcrypt
+    . scripts/feature
+
+    if [ $dfs_found = yes ]; then
+        CRYPT_LIB="-lcrypt"
+    fi
+fi
+
+
+dfs_feature="F_READAHEAD"
+dfs_feature_name="DFS_HAVE_F_READAHEAD"
+dfs_feature_run=no
+dfs_feature_incs="#include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="dfsntl(0, F_READAHEAD, 1);"
+. scripts/feature
+
+
+dfs_feature="posix_fadvise()"
+dfs_feature_name="DFS_HAVE_POSIX_FADVISE"
+dfs_feature_run=no
+dfs_feature_incs="#include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="posix_fadvise(0, 0, 0, POSIX_FADV_SEQUENTIAL);"
+. scripts/feature
+
+
+dfs_feature="O_DIRECT"
+dfs_feature_name="DFS_HAVE_O_DIRECT"
+dfs_feature_run=no
+dfs_feature_incs="#include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="dfsntl(0, F_SETFL, O_DIRECT);"
+. scripts/feature
+
+
+if [ $dfs_found = yes -a "$DFS_SYSTEM" = "Linux" ]; then
+    have=DFS_HAVE_ALIGNED_DIRECTIO . scripts/have
+fi
+
+dfs_feature="F_NOCACHE"
+dfs_feature_name="DFS_HAVE_F_NOCACHE"
+dfs_feature_run=no
+dfs_feature_incs="#include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="dfsntl(0, F_NOCACHE, 1);"
+. scripts/feature
+
+
+dfs_feature="directio()"
+dfs_feature_name="DFS_HAVE_DIRECTIO"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/types.h>
+                  #include <sys/dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="directio(0, DIRECTIO_ON);"
+. scripts/feature
+
+
+dfs_feature="statfs()"
+dfs_feature_name="DFS_HAVE_STATFS"
+dfs_feature_run=no
+dfs_feature_incs="$DFS_INCLUDE_SYS_PARAM_H
+                  $DFS_INCLUDE_SYS_MOUNT_H
+                  $DFS_INCLUDE_SYS_VFS_H"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct statfs  fs;
+                  statfs(\".\", &fs);"
+. scripts/feature
+
+
+dfs_feature="statvfs()"
+dfs_feature_name="DFS_HAVE_STATVFS"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/types.h>
+                  #include <sys/statvfs.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct statvfs  fs;
+                  statvfs(\".\", &fs);"
+. scripts/feature
+
+
+dfs_feature="dlopen()"
+dfs_feature_name=
+dfs_feature_run=no
+dfs_feature_incs="#include <dldfsn.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="dlopen(NULL, 0)"
+. scripts/feature
+
+
+if [ $dfs_found != yes ]; then
+
+    dfs_feature="dlopen() in libdl"
+    dfs_feature_libs="-ldl"
+    . scripts/feature
+
+    if [ $dfs_found = yes ]; then
+        DFS_LIBDL="-ldl"
+    fi
+fi
+
+
+dfs_feature="sched_yield()"
+dfs_feature_name="DFS_HAVE_SCHED_YIELD"
+dfs_feature_run=no
+dfs_feature_incs="#include <sched.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="sched_yield()"
+. scripts/feature
+
+
+if [ $dfs_found != yes ]; then
+
+    dfs_feature="sched_yield() in librt"
+    dfs_feature_libs="-lrt"
+    . scripts/feature
+
+    if [ $dfs_found = yes ]; then
+        CORE_LIBS="$CORE_LIBS -lrt"
+    fi
+fi
+        
+dfs_feature="SO_SETFIB"
+dfs_feature_name="DFS_HAVE_SETFIB"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="setsockopt(0, SOL_SOCKET, SO_SETFIB, NULL, 4)"
+. scripts/feature
+
+
+dfs_feature="SO_ACCEPTFILTER"
+dfs_feature_name="DFS_HAVE_DEFERRED_ACCEPT"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="setsockopt(0, SOL_SOCKET, SO_ACCEPTFILTER, NULL, 0)"
+. scripts/feature
+
+
+dfs_feature="TCP_DEFER_ACCEPT"
+dfs_feature_name="DFS_HAVE_DEFERRED_ACCEPT"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>
+                  #include <netinet/in.h>
+                  #include <netinet/tcp.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="setsockopt(0, IPPROTO_TCP, TCP_DEFER_ACCEPT, NULL, 0)"
+. scripts/feature
+
+
+dfs_feature="TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT"
+dfs_feature_name="DFS_HAVE_KEEPALIVE_TUNABLE"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>
+                  #include <netinet/in.h>
+                  #include <netinet/tcp.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="setsockopt(0, IPPROTO_TCP, TCP_KEEPIDLE, NULL, 0);
+                  setsockopt(0, IPPROTO_TCP, TCP_KEEPINTVL, NULL, 0);
+                  setsockopt(0, IPPROTO_TCP, TCP_KEEPCNT, NULL, 0)"
+. scripts/feature
+
+
+dfs_feature="TCP_INFO"
+dfs_feature_name="DFS_HAVE_TCP_INFO"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>
+                  #include <netinet/in.h>
+                  #include <netinet/tcp.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="socklen_t optlen = sizeof(struct tcp_info);
+                  struct tcp_info ti;
+                  ti.tcpi_rtt = 0;
+                  ti.tcpi_rttvar = 0;
+                  ti.tcpi_snd_cwnd = 0;
+                  ti.tcpi_rcv_space = 0;
+                  getsockopt(0, IPPROTO_TCP, TCP_INFO, &ti, &optlen)"
+. scripts/feature
+
+
+dfs_feature="accept4()"
+dfs_feature_name="DFS_HAVE_ACCEPT4"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="accept4(0, NULL, NULL, SOCK_NONBLOCK)"
+. scripts/feature
+
+have=DFS_HAVE_UNIX_DOMAIN . scripts/have
+
+dfs_feature_libs=
+
+
+# C types
+
+dfs_type="int"; . scripts/types/sizeof
+
+dfs_type="long"; . scripts/types/sizeof
+
+dfs_type="long long"; . scripts/types/sizeof
+
+dfs_type="void *"; . scripts/types/sizeof; dfs_ptr_size=$dfs_size
+dfs_param=DFS_PTR_SIZE; dfs_value=$dfs_size; . scripts/types/value
+
+
+# POSIX types
+
+case "$DFS_AUTO_CONFIG_H" in
+    /*)
+        DFS_INCLUDE_AUTO_CONFIG_H="#include \"$DFS_AUTO_CONFIG_H\""
+    ;;
+    *)
+        DFS_INCLUDE_AUTO_CONFIG_H="#include \"../$DFS_AUTO_CONFIG_H\""
+    ;;
+esac
+
+dfs_type="uint64_t"; dfs_types="u_int64_t"; . scripts/types/typedef
+
+dfs_type="sig_atomic_t"; dfs_types="int"; . scripts/types/typedef
+. scripts/types/sizeof
+dfs_param=DFS_SIG_ATOMIC_T_SIZE; dfs_value=$dfs_size; . scripts/types/value
+
+dfs_type="socklen_t"; dfs_types="int"; . scripts/types/typedef
+
+dfs_type="in_addr_t"; dfs_types="uint32_t"; . scripts/types/typedef
+
+dfs_type="in_port_t"; dfs_types="u_short"; . scripts/types/typedef
+
+dfs_type="rlim_t"; dfs_types="int"; . scripts/types/typedef
+
+. scripts/types/uintptr_t
+
+. scripts/endianness
+
+dfs_type="size_t"; . scripts/types/sizeof
+dfs_param=DFS_MAX_SIZE_T_VALUE; dfs_value=$dfs_max_value; . scripts/types/value
+dfs_param=DFS_SIZE_T_LEN; dfs_value=$dfs_max_len; . scripts/types/value
+
+dfs_type="off_t"; . scripts/types/sizeof
+dfs_param=DFS_MAX_OFF_T_VALUE; dfs_value=$dfs_max_value; . scripts/types/value
+dfs_param=DFS_OFF_T_LEN; dfs_value=$dfs_max_len; . scripts/types/value
+
+dfs_type="time_t"; . scripts/types/sizeof
+dfs_param=DFS_TIME_T_SIZE; dfs_value=$dfs_size; . scripts/types/value
+dfs_param=DFS_TIME_T_LEN; dfs_value=$dfs_max_len; . scripts/types/value
+
+
+# syscalls, libc calls and some features
+
+
+if [ $DFS_IPV6 = YES ]; then
+    dfs_feature="AF_INET6"
+    dfs_feature_name="DFS_HAVE_INET6"
+    dfs_feature_run=no
+    dfs_feature_incs="#include <sys/socket.h>
+                      #include <netinet/in.h>
+                      #include <arpa/inet.h>"
+    dfs_feature_path=
+    dfs_feature_libs=
+    dfs_feature_test="struct sockaddr_in6  sin6;
+                      sin6.sin6_family = AF_INET6;"
+    . scripts/feature
+fi
+
+
+dfs_feature="setproctitle()"
+dfs_feature_name="DFS_HAVE_SETPROCTITLE"
+dfs_feature_run=no
+dfs_feature_incs="#include <stdlib.h>"
+dfs_feature_path=
+dfs_feature_libs=$DFS_SETPROCTITLE_LIB
+dfs_feature_test="setproctitle(\"test\");"
+. scripts/feature
+
+
+dfs_feature="pread()"
+dfs_feature_name="DFS_HAVE_PREAD"
+dfs_feature_run=no
+dfs_feature_incs=
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="char buf[1]; ssize_t n; n = pread(0, buf, 1, 0);
+                  if (n == -1) return 1"
+. scripts/feature
+
+
+dfs_feature="pwrite()"
+dfs_feature_name="DFS_HAVE_PWRITE"
+dfs_feature_run=no
+dfs_feature_incs=
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="char buf[1]; ssize_t n; n = pwrite(1, buf, 1, 0);
+                  if (n == -1) return 1"
+. scripts/feature
+
+
+dfs_feature="sys_nerr"
+dfs_feature_name="DFS_SYS_NERR"
+dfs_feature_run=value
+dfs_feature_incs='#include <errno.h>
+                  #include <stdio.h>'
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test='printf("%d", sys_nerr);'
+. scripts/feature
+
+
+if [ $dfs_found = no ]; then
+
+    # Cygiwn defines _sys_nerr
+    dfs_feature="_sys_nerr"
+    dfs_feature_name="DFS_SYS_NERR"
+    dfs_feature_run=value
+    dfs_feature_incs='#include <errno.h>
+                      #include <stdio.h>'
+    dfs_feature_path=
+    dfs_feature_libs=
+    dfs_feature_test='printf("%d", _sys_nerr);'
+    . scripts/feature
+fi
+
+
+if [ $dfs_found = no ]; then
+
+    # Solaris has no sys_nerr
+    dfs_feature='maximum errno'
+    dfs_feature_name=DFS_SYS_NERR
+    dfs_feature_run=value
+    dfs_feature_incs='#include <errno.h>
+                      #include <string.h>
+                      #include <stdio.h>'
+    dfs_feature_path=
+    dfs_feature_libs=
+    dfs_feature_test='int  n;
+                      char *p;
+                      for (n = 1; n < 1000; n++) {
+                          errno = 0;
+                          p = strerror(n);
+                          if (errno == EINVAL
+                              || p == NULL
+                              || strncmp(p, "Unknown error", 13) == 0)
+                          {
+                              break;
+                          }
+                      }
+                      printf("%d", n);'
+    . scripts/feature
+fi
+
+
+dfs_feature="localtime_r()"
+dfs_feature_name="DFS_HAVE_LOCALTIME_R"
+dfs_feature_run=no
+dfs_feature_incs="#include <time.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct tm t; time_t c=0; localtime_r(&c, &t)"
+. scripts/feature
+
+
+dfs_feature="posix_memalign()"
+dfs_feature_name="DFS_HAVE_POSIX_MEMALIGN"
+dfs_feature_run=no
+dfs_feature_incs="#include <stdlib.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="void *p; int n; n = posix_memalign(&p, 4096, 4096);
+                  if (n != 0) return 1"
+. scripts/feature
+
+
+dfs_feature="memalign()"
+dfs_feature_name="DFS_HAVE_MEMALIGN"
+dfs_feature_run=no
+dfs_feature_incs="#include <stdlib.h>
+                  #include <malloc.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="void *p; p = memalign(4096, 4096);
+                  if (p == NULL) return 1"
+. scripts/feature
+
+
+dfs_feature="mmap(MAP_ANON|MAP_SHARED)"
+dfs_feature_name="DFS_HAVE_MAP_ANON"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/mman.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="void *p;
+                  p = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
+                           MAP_ANON|MAP_SHARED, -1, 0);
+                  if (p == MAP_FAILED) return 1;"
+. scripts/feature
+
+
+dfs_feature='mmap("/dev/zero", MAP_SHARED)'
+dfs_feature_name="DFS_HAVE_MAP_DEVZERO"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/mman.h>
+                  #include <sys/stat.h>
+                  #include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test='void *p; int  fd;
+                  fd = open("/dev/zero", O_RDWR);
+                  p = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+                  if (p == MAP_FAILED) return 1;'
+. scripts/feature
+
+
+dfs_feature="System V shared memory"
+dfs_feature_name="DFS_HAVE_SYSVSHM"
+dfs_feature_run=yes
+dfs_feature_incs="#include <sys/ipc.h>
+                  #include <sys/shm.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="int  id;
+                  id = shmget(IPC_PRIVATE, 4096, (SHM_R|SHM_W|IPC_CREAT));
+                  if (id == -1) return 1;
+                  shmctl(id, IPC_RMID, NULL);"
+. scripts/feature
+
+
+dfs_feature="POSIX semaphores"
+dfs_feature_name="DFS_HAVE_POSIX_SEM"
+dfs_feature_run=yes
+dfs_feature_incs="#include <semaphore.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="sem_t  sem;
+                  if (sem_init(&sem, 1, 0) == -1) return 1;
+                  sem_destroy(&sem);"
+. scripts/feature
+
+
+if [ $dfs_found = no ]; then
+
+    # Linux has POSIX semaphores in libpthread
+    dfs_feature="POSIX semaphores in libpthread"
+    dfs_feature_libs=-lpthread
+    . scripts/feature
+
+    if [ $dfs_found = yes ]; then
+        CORE_LIBS="$CORE_LIBS -lpthread"
+    fi
+fi
+
+
+if [ $dfs_found = no ]; then
+
+    # Solaris has POSIX semaphores in librt
+    dfs_feature="POSIX semaphores in librt"
+    dfs_feature_libs=-lrt
+    . scripts/feature
+
+    if [ $dfs_found = yes ]; then
+        CORE_LIBS="$CORE_LIBS -lrt"
+    fi
+fi
+
+
+dfs_feature="struct msghdr.msg_control"
+dfs_feature_name="DFS_HAVE_MSGHDR_MSG_CONTROL"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/socket.h>
+                  #include <stdio.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct msghdr  msg;
+                  printf(\"%d\", (int) sizeof(msg.msg_control))"
+. scripts/feature
+
+
+dfs_feature="ioctl(FIONBIO)"
+dfs_feature_name="DFS_HAVE_FIONBIO"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/ioctl.h>
+                  #include <stdio.h>
+                  $DFS_INCLUDE_SYS_FILIO_H"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="int i = FIONBIO; printf(\"%d\", i)"
+. scripts/feature
+
+
+dfs_feature="struct tm.tm_gmtoff"
+dfs_feature_name="DFS_HAVE_GMTOFF"
+dfs_feature_run=no
+dfs_feature_incs="#include <time.h>
+                  #include <stdio.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct tm  tm; tm.tm_gmtoff = 0;
+                  printf(\"%d\", (int) tm.tm_gmtoff)"
+. scripts/feature
+
+
+dfs_feature="struct dirent.d_namlen"
+dfs_feature_name="DFS_HAVE_D_NAMLEN"
+dfs_feature_run=no
+dfs_feature_incs="#include <dirent.h>
+                  #include <stdio.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct dirent  dir; dir.d_namlen = 0;
+                  printf(\"%d\", (int) dir.d_namlen)"
+. scripts/feature
+
+
+dfs_feature="struct dirent.d_type"
+dfs_feature_name="DFS_HAVE_D_TYPE"
+dfs_feature_run=no
+dfs_feature_incs="#include <dirent.h>
+                  #include <stdio.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct dirent  dir; dir.d_type = DT_REG;
+                  printf(\"%d\", (int) dir.d_type)"
+. scripts/feature
+
+
+dfs_feature="sysconf(_SC_NPROCESSORS_ONLN)"
+dfs_feature_name="DFS_HAVE_SC_NPROCESSORS_ONLN"
+dfs_feature_run=no
+dfs_feature_incs=
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="sysconf(_SC_NPROCESSORS_ONLN)"
+. scripts/feature
+
+
+dfs_feature="openat(), fstatat()"
+dfs_feature_name="DFS_HAVE_OPENAT"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/types.h>
+                  #include <sys/stat.h>
+                  #include <dfsntl.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test="struct stat sb;
+                  openat(AT_FDCWD, \".\", O_RDONLY|O_NOFOLLOW);
+                  fstatat(AT_FDCWD, \".\", &sb, AT_SYMLINK_NOFOLLOW);"
+. scripts/feature
+
+
+dfs_feature="getaddrinfo()"
+dfs_feature_name="DFS_HAVE_GETADDRINFO"
+dfs_feature_run=no
+dfs_feature_incs="#include <sys/types.h>
+                  #include <sys/socket.h>
+                  #include <netdb.h>"
+dfs_feature_path=
+dfs_feature_libs=
+dfs_feature_test='struct addrinfo *res;
+                  if (getaddrinfo("localhost", NULL, NULL, &res) != 0) return 1;
+                  freeaddrinfo(res)'
+. scripts/feature

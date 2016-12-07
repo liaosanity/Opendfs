@@ -1,0 +1,102 @@
+#ifndef FAIO_ERRNO_H
+#define FAIO_ERRNO_H
+
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+
+#define FAIO_ERR_START          (100) 
+#define FAIO_ERR_MSG_MAX_LEN    (256)
+
+typedef struct faio_errno_s 
+{
+    int     data;
+    int     worker;
+    int     handler;
+    int     notifier;
+    int     sys;
+    char    msg[FAIO_ERR_MSG_MAX_LEN];
+} faio_errno_t;
+
+typedef struct faio_task_errno_s 
+{
+    int     err;
+    int     sys;
+} faio_task_errno_t;
+
+enum 
+{
+    FAIO_ERR_DATA_START = FAIO_ERR_START,
+    FAIO_ERR_DATA_MANAGER_NULL,
+    FAIO_ERR_DATA_CALLBACK_NULL,
+    FAIO_ERR_DATA_TASK_NULL,
+    FAIO_ERR_DATA_PARAM_NULL,
+    FAIO_ERR_DATA_NOTIFIER_NULL,
+    FAIO_ERR_DATA_SENDFILE_NOTIFIER_NULL,
+    FAIO_ERR_DATA_IOTYPE_WRONG,
+    FAIO_ERR_DATA_TASK_TOO_MANY,
+    FAIO_ERR_DATA_END 
+};
+
+enum 
+{
+    FAIO_ERR_WORKER_START = FAIO_ERR_START,
+    FAIO_WORKER_ERR_MANAGER_NULL,    
+    FAIO_WORKER_ERR_THREAD_NULL,             
+    FAIO_WORKER_ERR_THREAD_CREATE,   
+    FAIO_WORKER_ERR_GET_CPU,
+    FAIO_WORKER_ERR_INIT_MAX_IDLE,
+    FAIO_WORKER_ERR_SET_MAX_IDLE,
+    FAIO_WORKER_ERR_INIT_MAX_THREAD,
+    FAIO_WORKER_ERR_SET_MAX_THREAD,
+    FAIO_WORKER_ERR_INIT_IDLE_TIMEOUT,
+    FAIO_WORKER_ERR_SET_IDLE_TIMEOUT,
+    FAIO_WORKER_ERR_PRE_START,
+    FAIO_WORKER_ERR_NO_INIT,
+    FAIO_ERR_WORKER_END 
+};
+
+enum 
+{
+    FAIO_ERR_HANDLER_START = FAIO_ERR_START,
+    FAIO_ERR_HANDLER_NULL,
+    FAIO_ERR_HANDLER_REDEF,
+    FAIO_ERR_HANDLER_IOTYPE_WRONG,
+    FAIO_ERR_HANDLER_END 
+};
+
+enum 
+{
+    FAIO_ERR_NOTIFIER_START = FAIO_ERR_START,
+    FAIO_ERR_NOTIFIER_INIT_PARAM,               // 1
+    FAIO_ERR_NOTIFIER_INIT_CONDITION_INIT,      // 2
+    FAIO_ERR_NOTIFIER_INIT_NFD_CREATE,          // 3
+    FAIO_ERR_NOTIFIER_RELEASE_PARAM,            // 4
+    FAIO_ERR_NOTIFIER_RELEASE_TRUE,             // 5
+    FAIO_ERR_NOTIFIER_SEND_PARAM,               // 6
+    FAIO_ERR_NOTIFIER_SEND_WRITE,               // 7
+    FAIO_ERR_NOTIFIER_RECEIVE_PARAM,            // 8
+    FAIO_ERR_NOTIFIER_RECEIVE_READ,             // 9
+    FAIO_ERR_NOTIFIER_COUNT_INC_PARAM,          // 10
+    FAIO_ERR_NOTIFIER_COUNT_DEC_PARAM,          // 11
+    FAIO_ERR_NOTIFIER_END 
+};
+
+enum 
+{
+    FAIO_ERR_TASK_NO_ERR = 0,
+    FAIO_ERR_TASK_START = FAIO_ERR_START,
+    FAIO_ERR_TASK_TOO_MANY,
+    FAIO_ERR_TASK_LOCK_QUE,
+    FAIO_ERR_TASK_UNLOCK_QUE,
+    FAIO_ERR_TASK_IOTYPE_WRONG,
+    FAIO_ERR_TASK_HANDLER_NULL,
+    FAIO_ERR_TASK_HANDLER_ERR,
+    FAIO_ERR_TASK_READ_END,
+    FAIO_ERR_TASK_END
+};
+
+const char *faio_error_msg(faio_errno_t *err_no);
+
+#endif
+

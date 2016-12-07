@@ -1,0 +1,105 @@
+echo $dfs_n "checking for $dfs_feature ...$dfs_c"
+
+cat << END >> $DFS_AUTOCONF_ERR
+
+----------------------------------------
+checking for $dfs_feature
+
+END
+
+dfs_found=no
+
+if test -n "$dfs_feature_name"; then
+    dfs_have_feature=`echo $dfs_feature_name \
+                   | tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ`
+fi
+
+if test -n "$dfs_feature_path"; then
+    for dfs_temp in $dfs_feature_path; do
+        dfs_feature_inc_path="$dfs_feature_inc_path -I $dfs_temp"
+    done
+fi
+
+cat << END > $DFS_AUTOTEST.c
+
+#include <sys/types.h>
+$DFS_INCLUDE_UNISTD_H
+$dfs_feature_incs
+
+int main() {
+    $dfs_feature_test;
+    return 0;
+}
+
+END
+
+
+dfs_test="$CC $CC_TEST_FLAGS $CC_AUX_FLAGS $dfs_feature_inc_path \
+          -o $DFS_AUTOTEST $DFS_AUTOTEST.c $DFS_TEST_LD_OPT $dfs_feature_libs"
+
+dfs_feature_inc_path=
+
+eval "/bin/sh -c \"$dfs_test\" >> $DFS_AUTOCONF_ERR 2>&1"
+
+
+if [ -x $DFS_AUTOTEST ]; then
+
+    case "$dfs_feature_run" in
+
+        yes)
+            # /bin/sh is used to intercept "Killed" or "Abort trap" messages
+            if /bin/sh -c $DFS_AUTOTEST >> $DFS_AUTOCONF_ERR 2>&1; then
+                echo " found"
+                dfs_found=yes
+            else
+                echo " found but is not working"
+            fi
+        ;;
+
+        value)
+            # /bin/sh is used to intercept "Killed" or "Abort trap" messages
+            if /bin/sh -c $DFS_AUTOTEST >> $DFS_AUTOCONF_ERR 2>&1; then
+                echo " found"
+                dfs_found=yes
+
+                cat << END >> $DFS_AUTO_CONFIG_H
+
+#ifndef $dfs_feature_name
+#define $dfs_feature_name  `$DFS_AUTOTEST`
+#endif
+
+END
+            else
+                echo " found but is not working"
+            fi
+        ;;
+
+        bug)
+            # /bin/sh is used to intercept "Killed" or "Abort trap" messages
+            if /bin/sh -c $DFS_AUTOTEST >> $DFS_AUTOCONF_ERR 2>&1; then
+                echo " not found"
+
+            else
+                echo " found"
+                dfs_found=yes
+            fi
+        ;;
+
+        *)
+            echo " found"
+            dfs_found=yes
+        ;;
+
+    esac
+
+else
+    echo " not found"
+
+    echo "----------"    >> $DFS_AUTOCONF_ERR
+    cat $DFS_AUTOTEST.c  >> $DFS_AUTOCONF_ERR
+    echo "----------"    >> $DFS_AUTOCONF_ERR
+    echo $dfs_test       >> $DFS_AUTOCONF_ERR
+    echo "----------"    >> $DFS_AUTOCONF_ERR
+fi
+
+rm $DFS_AUTOTEST*

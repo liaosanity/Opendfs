@@ -1,0 +1,41 @@
+DFS_MAKEFILE=$DFS_OBJS/Makefile
+DFS_MODULES_C=$DFS_OBJS/dfs_modules.c
+
+DFS_AUTOTEST=$DFS_OBJS/autotest
+DFS_AUTOCONF_ERR=$DFS_OBJS/autoconf.err
+
+DFS_AUTO_CONFIG_H=$DFS_OBJS/config.h
+
+# STUBs
+DFS_ERR=$DFS_OBJS/autoconf.err
+MAKEFILE=$DFS_OBJS/Makefile
+
+# check the echo's "-n" option and "\c" capability
+
+if echo "test\c" | grep c >/dev/null; then
+
+    if echo -n test | grep n >/dev/null; then
+        dfs_n=
+        dfs_c=
+
+    else
+        dfs_n=-n
+        dfs_c=
+    fi
+
+else
+    dfs_n=
+    dfs_c='\c'
+fi
+
+
+# create Makefile
+
+cat << END > Makefile
+
+default:	build
+
+clean:
+	rm -rf Makefile $DFS_OBJS
+END
+

@@ -1,0 +1,12 @@
+
+# Copyright (C) Igor Sysoev
+# Copyright (C) Nginx, Inc.
+
+
+cat << END >> $DFS_AUTO_CONFIG_H
+
+#ifndef $dfs_param
+#define $dfs_param  $dfs_value
+#endif
+
+END
