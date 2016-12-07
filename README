@@ -1,4 +1,6 @@
-Opendfs Version 1.x or 2.x
+Opendfs Version 0.1
+
+Introduction in Chinese you can see it in the 'opendfs.docx' doc.
 
 If you want to change the release version, please modify the "PACKAGE_STRING" in scripts/version.
 
