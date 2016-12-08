@@ -1,4 +1,4 @@
-[简体中文介绍](https://github.com/liaosanity/Opendfs/README.zh_CN.md)
+[简体中文README](https://github.com/liaosanity/Opendfs/blob/master/README.zh_CN.md)
 
 # Overview
 Opendfs is written in C/C++, it is a distributed file storage system, which is highly fault-tolerant, high concurrency, high throughput, high performance, and easy to scale-out?and?scale-in, the structure of file and directory stored in the cluster, is very similar with the Linux file system.
@@ -16,10 +16,10 @@ Like the HDFS, an Opendfs cluster also contain DFSClient, Namenode, Datanode of 
  * In HDFS, Before writing block to Datanode, DFSClient will create a Pipeline data flow(Datanode1 -> Datanode2 -> Datanode3) firstly, then transfer the data in serialization, but in Opendfs, data blocks will be writing in parallel.
 
 # A simple file writing process
-![images](https://github.com/liaosanity/Opendfs/tree/master/images/writing_process.png)
+![images](https://github.com/liaosanity/Opendfs/raw/master/images/writing_process.png)
 
 # A simple file reading process
-![images](https://github.com/liaosanity/Opendfs/tree/master/images/reading_process.png)
+![images](https://github.com/liaosanity/Opendfs/raw/master/images/reading_process.png)
 
 # Building
  * Environment dependence:   
@@ -95,12 +95,12 @@ Secondary, run the app:
 ```Bash
 $ sbin/dfscli  
 Usage: sbin/dfscli cmd...  
-    -mkdir <path>   
-    -rmr <path>   
-    -ls <path>   
-    -put <local path> <remote path>   
-    -get <remote path> <local path>   
-    -rm <path>  
+       -mkdir <path>   
+       -rmr <path>   
+       -ls <path>   
+       -put <local path> <remote path>   
+       -get <remote path> <local path>   
+       -rm <path>  
 ```
 
 # Thanks
