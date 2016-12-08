@@ -1,4 +1,4 @@
-[¼òÌåÖÐÎÄREADME](https://github.com/liaosanity/Opendfs/blob/master/README.zh_CN.md)
+[Chinese introduction](https://github.com/liaosanity/Opendfs/blob/master/README.zh_CN.md)
 
 # Overview
 Opendfs is written in C/C++, it is a distributed file storage system, which is highly fault-tolerant, high concurrency, high throughput, high performance, and easy to scale-out?and?scale-in, the structure of file and directory stored in the cluster, is very similar with the Linux file system.
