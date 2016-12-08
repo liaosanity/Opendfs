@@ -94,12 +94,12 @@ Secondary, run the app:
 # Running basic tests:  
 $ sbin/dfscli  
 Usage: sbin/dfscli cmd...  
-	 -mkdir <path>   
-	 -rmr <path>   
-	 -ls <path>   
-	 -put <local path> <remote path>   
-	 -get <remote path> <local path>   
-	 -rm <path>  
+       -mkdir <path>   
+       -rmr <path>   
+       -ls <path>   
+       -put <local path> <remote path>   
+       -get <remote path> <local path>   
+       -rm <path>  
 
 # Thanks
 Thank you [phxpaxos](https://github.com/tencent-wechat/phxpaxos), it make our work become easy.
