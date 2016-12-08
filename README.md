@@ -22,84 +22,84 @@ Like the HDFS, an Opendfs cluster also contain DFSClient, Namenode, Datanode of 
 ![images](https://github.com/liaosanity/Opendfs/tree/master/images/reading_process.png)
 
 # Building
- * Environment dependence: 
-   Linux, GCC4.8+
- * Software dependence: 
-   yum -y install pcre-devel
- * Source compile:
-   ./configure --prefix=/home/opendfs
-   make
-   make install
+ * Environment dependence:   
+   Linux, GCC4.8+  
+ * Software dependence:  
+   yum -y install pcre-devel  
+ * Source compile:  
+   ./configure --prefix=/home/opendfs  
+   make  
+   make install  
 
 # Running a real cluster
 We'll run all the servers on localhost, first need to create three configuration files. You can base yours off of xxx.conf.default, or the following will work:
- * namenode.conf
-   Server server;
-   server.daemon = ALLOW;
-   server.workers = 8;
-   server.connections = 65536;
-   server.bind_for_cli = "0.0.0.0:8000";
-   server.bind_for_dn = "0.0.0.0:8001";
-   server.my_paxos = "0.0.0.0:8002";
-   server.ot_paxos = "0.0.0.0:8002";
-   server.paxos_group_num = 1;
-   server.checkpoint_num = 10000;
-   server.index_num = 1000000;
-   server.editlog_dir = "/data00/namenode/editlog";
-   server.fsimage_dir = "/data00/namenode/fsimage";
-   server.error_log = "/data00/namenode/logs/error.log";
-   server.pid_file = "/data00/namenode/pid/namenode.pid";
-   server.coredump_dir = "/data00/namenode/coredump";
-   server.log_level = LOG_INFO;
-   server.recv_buff_len = 64KB;
-   server.send_buff_len = 64KB;
-   server.max_tqueue_len = 1000;
-   server.dn_timeout = 600;
+ * namenode.conf  
+   Server server;  
+   server.daemon = ALLOW;  
+   server.workers = 8;  
+   server.connections = 65536;  
+   server.bind_for_cli = "0.0.0.0:8000";  
+   server.bind_for_dn = "0.0.0.0:8001";  
+   server.my_paxos = "0.0.0.0:8002";  
+   server.ot_paxos = "0.0.0.0:8002";  
+   server.paxos_group_num = 1;  
+   server.checkpoint_num = 10000;  
+   server.index_num = 1000000;  
+   server.editlog_dir = "/data00/namenode/editlog";  
+   server.fsimage_dir = "/data00/namenode/fsimage";  
+   server.error_log = "/data00/namenode/logs/error.log";  
+   server.pid_file = "/data00/namenode/pid/namenode.pid";  
+   server.coredump_dir = "/data00/namenode/coredump";  
+   server.log_level = LOG_INFO;  
+   server.recv_buff_len = 64KB;  
+   server.send_buff_len = 64KB;  
+   server.max_tqueue_len = 1000;  
+   server.dn_timeout = 600;  
  
- * datanode.conf
-   Server server;
-   server.daemon = ALLOW;
-   server.workers = 8;
-   server.connections = 65536;
-   server.bind_for_cli = "0.0.0.0:8100";
-   server.ns_srv = "127.0.0.1:8001";
-   server.data_dir = "/data01/block,/data02/block,/data03/block";
-   server.error_log = "/data00/datanode/logs/error.log";
-   server.pid_file = "/data00/datanode/pid/datanode.pid";
-   server.coredump_dir = "/data00/datanode/coredump/";
-   server.log_level = LOG_INFO;
-   server.recv_buff_len = 64KB;
-   server.send_buff_len = 64KB;
-   server.max_tqueue_len = 1000;
-   server.heartbeat_interval = 3;
-   server.block_report_interval = 3600;
+ * datanode.conf  
+   Server server;  
+   server.daemon = ALLOW;  
+   server.workers = 8;  
+   server.connections = 65536;  
+   server.bind_for_cli = "0.0.0.0:8100";  
+   server.ns_srv = "127.0.0.1:8001";  
+   server.data_dir = "/data01/block,/data02/block,/data03/block";  
+   server.error_log = "/data00/datanode/logs/error.log";  
+   server.pid_file = "/data00/datanode/pid/datanode.pid";  
+   server.coredump_dir = "/data00/datanode/coredump/";  
+   server.log_level = LOG_INFO;  
+   server.recv_buff_len = 64KB;  
+   server.send_buff_len = 64KB;  
+   server.max_tqueue_len = 1000;  
+   server.heartbeat_interval = 3;  
+   server.block_report_interval = 3600;  
 
- * dfscli.conf
-   Server server;
-   server.daemon = ALLOW;
-   server.namenode_addr = "127.0.0.1:8000";
-   server.error_log = "";
-   server.log_level = LOG_INFO;
-   server.recv_buff_len = 64KB;
-   server.send_buff_len = 64KB;
-   server.blk_sz = 256MB;
-   server.blk_rep = 3;
+ * dfscli.conf  
+   Server server;  
+   server.daemon = ALLOW;  
+   server.namenode_addr = "127.0.0.1:8000";  
+   server.error_log = "";  
+   server.log_level = LOG_INFO;  
+   server.recv_buff_len = 64KB;  
+   server.send_buff_len = 64KB;  
+   server.blk_sz = 256MB;  
+   server.blk_rep = 3;  
 
 Secondary, run the app:
- * Namenode:
-   sbin/namenode
- * Datanode:
-   sbin/datanode
+ * Namenode:  
+   sbin/namenode  
+ * Datanode:  
+   sbin/datanode  
 
-# Running basic tests:
-$ sbin/dfscli
-Usage: sbin/dfscli cmd...
-	 -mkdir <path> 
-	 -rmr <path> 
-	 -ls <path> 
-	 -put <local path> <remote path> 
-	 -get <remote path> <local path> 
-	 -rm <path>
+# Running basic tests:  
+$ sbin/dfscli  
+Usage: sbin/dfscli cmd...  
+	 -mkdir <path>   
+	 -rmr <path>   
+	 -ls <path>   
+	 -put <local path> <remote path>   
+	 -get <remote path> <local path>   
+	 -rm <path>  
 
 # Thanks
 Thank you [phxpaxos](https://github.com/tencent-wechat/phxpaxos), it make our work become easy.
