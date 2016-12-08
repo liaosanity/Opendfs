@@ -1,7 +1,6 @@
 Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度容错、高并发、高吞吐量、易扩展，具有类似Linux文件系统的文件、目录结构等特点；  
 类似于HDFS，一个Opendfs集群也由DFSClient、Namenode、Datanode三种角色组成，一个文件将由DFSClient切分成多个数据块存储到集群上，而Datanode则负责保存这些数据块，Namenode负责维护文件由多少个块组成，这些块保存在哪个Datanode上的映射关系，集群整体架构如图1示：
 ![图1](https://github.com/liaosanity/Opendfs/raw/master/images/overall_architecture.png)  
-                                   图1  
 ## 各角色功能介绍如下：  
  * Namenode，元数据存储节点，负责元数据的管理，包括文件、目录树在集群中的存储结构，每个文件对应的数据块列表，各数据块存储在哪些数据节点上；管理数据节点的存活状态以及数据流的读写调度等；每次元数据的操作（写、删除）除了更新内存，还会产生一条操作日志写到本地磁盘的日志文件（editlog），在写入磁盘前这条操作日志会通过paxos协议同步到其他从元数据节点，在某个设定时间点（checkpoint），每个元数据节点会把内存中的元数据dump到本地磁盘生成镜像文件（fsimage），以确保editlog文件不至于过大，元数据节点的每次启动，都会通过fsimage和editlog文件动态的重建元数据的映射关系。
  * Datanode，数据存储节点，负责文件数据块的管理，每个数据块将以文件的形式存储到本地文件系统，接收来自客户端的数据块读写请求；启动时会注册到所有元数据节点，通过心跳、块上报随时向元数据节点汇报自己的健康状态，如：剩余容量大小、当前处理的连接数、当前存储的块数以及数据块是否被损坏等，同时接收来自元数据节点的指令，如创建、移动、删除数据块等。
@@ -14,7 +13,6 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度容错、高并发、高吞吐量、
 
 # 一个简单的文件写流程，如图2示：
 ![图2](https://github.com/liaosanity/Opendfs/raw/master/images/writing_process.png)  
-                                     图2  
 1) DFSClient向主Namenode发起写文件请求，并提供数据块大小、所需副本数（默认为3）等信息；  
 2) Namenode根据请求的副本数返回可写的Datanode列表（IPs），根据块分布策略使得返回的IPs分布在不同的机架，且每个IP只存一份副本；  
 3)DFSClient根据返回的IPs并行的向各个Datanode写数据块；  
@@ -26,7 +24,6 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度容错、高并发、高吞吐量、
 
 # 一个简单的文件读流程，如图3示：
 ![图3](https://github.com/liaosanity/Opendfs/raw/master/images/reading_process.png)  
-                                    图3  
 1) DFSClient向任意一Namenode发起读文件请求，问当前要读取的文件数据块分布在那些数据节点上；  
 2) Namenode返回可读的Datanode列表（IPs），每个数据块都返回所有3副本的IP，且一次请求尽可能返回多个数据块的IP列表（默认为10个块）；  
 3) DFSClient根据返回的IPs，先向IP1发起读数据块请求，如果失败，则从IPs列表中剔除，从而向IP2发起请求，直至数据块成功读取，如果向列表中所有IP发起请求均失败，则向Namenode上报Datanode不可用，然后告知应用层由于块缺失而导致文件读取失败；  
@@ -42,7 +39,7 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度容错、高并发、高吞吐量、
   * 源码编译：  
     ./configure --prefix=/home/opendfs  
     make  
-    make install  
+    make install
 ## 配置
   * 单机配置，即DFSClient、Namenode、Datanode都跑在同一台机器上，且Namenode、Datanode均为单点，各角色配置如下：
 ```
@@ -98,10 +95,9 @@ server.send_buff_len = 64KB;
 server.blk_sz = 256MB;
 server.blk_rep = 3;
 ``` 
- * 集群配置，其中DFSClient一台，Namenode、Datanode均为3台，各角色配置如下：
+ * 集群配置，其中DFSClient一台，Namenode、Datanode均为三台，各角色配置如下：
 ```
-# namenode.conf
-# namenode1
+# namenode1.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
@@ -124,7 +120,7 @@ server.send_buff_len = 64KB;
 server.max_tqueue_len = 1000;
 server.dn_timeout = 600;
 
-# namenode2
+# namenode2.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
@@ -147,7 +143,7 @@ server.send_buff_len = 64KB;
 server.max_tqueue_len = 1000;
 server.dn_timeout = 600;
 
-# namenode3
+# namenode3.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
@@ -170,8 +166,7 @@ server.send_buff_len = 64KB;
 server.max_tqueue_len = 1000;
 server.dn_timeout = 600;
 
-# datanode.conf
-# datanode1
+# datanode1.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
@@ -189,7 +184,7 @@ server.max_tqueue_len = 1000;
 server.heartbeat_interval = 3;
 server.block_report_interval = 3600;
 
-# datanode2
+# datanode2.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
@@ -207,7 +202,7 @@ server.max_tqueue_len = 1000;
 server.heartbeat_interval = 3;
 server.block_report_interval = 3600;
 
-# datanode3
+# datanode3.conf
 Server server;
 server.daemon = ALLOW;
 server.workers = 8;
