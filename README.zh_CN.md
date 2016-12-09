@@ -13,14 +13,14 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度�
 
 # 一个简单的文件写流程，如下图示：
 ![图2](https://github.com/liaosanity/Opendfs/raw/master/images/writing_process.png)  
-1）DFSClient向主Namenode发起写文件请求，并提供数据块大小、所需副本数（默认为3）等信息；  
-2）Namenode根据请求的副本数返回可写的Datanode列表（IPs），根据块分布策略使得返回的IPs分布在不同的机架，且每个IP只存一份副本；    
-3）DFSClient根据返回的IPs并行的向各个Datanode写数据块；  
-4）Datanode1收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
-5）Datanode2收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
-6）Datanode3收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；因为DFSClient是并行的写数据块，所以步骤4、5、6不是严格意义上的串行关系，而是并行的；  
-7）Datanode向Namenode上报收到块后，再告知DFSClient数据块成功写完；  
-8）至此一个数据块完整写完，如果需要写下一个数据块，则重复步骤1，直至所有数据块写完，再向Namenode发起关闭文件请求。
+1) DFSClient向主Namenode发起写文件请求，并提供数据块大小、所需副本数（默认为3）等信息；  
+2) Namenode根据请求的副本数返回可写的Datanode列表（IPs），根据块分布策略使得返回的IPs分布在不同的机架，且每个IP只存一份副本；    
+3) DFSClient根据返回的IPs并行的向各个Datanode写数据块；
+4) Datanode1收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
+5) Datanode2收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
+6) Datanode3收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；因为DFSClient是并行的写数据块，所以步骤4、5、6不是严格意义上的串行关系，而是并行的；  
+7) Datanode向Namenode上报收到块后，再告知DFSClient数据块成功写完；  
+8) 至此一个数据块完整写完，如果需要写下一个数据块，则重复步骤1，直至所有数据块写完，再向Namenode发起关闭文件请求。
 
 # 一个简单的文件读流程，如下图示：
 ![图3](https://github.com/liaosanity/Opendfs/raw/master/images/reading_process.png)  
