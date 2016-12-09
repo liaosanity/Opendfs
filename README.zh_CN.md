@@ -16,9 +16,9 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度�
 1）DFSClient向主Namenode发起写文件请求，并提供数据块大小、所需副本数（默认为3）等信息；  
 2）Namenode根据请求的副本数返回可写的Datanode列表（IPs），根据块分布策略使得返回的IPs分布在不同的机架，且每个IP只存一份副本；  
 3）DFSClient根据返回的IPs并行的向各个Datanode写数据块；  
-4）Datanode1收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；    
-5）Datanode2收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；    
-6）Datanode3收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；因为DFSClient是并行的写数据块，所以步骤4、5、6不是严格意义上的串    行关系，而是并行的；  
+4）Datanode1收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
+5）Datanode2收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；  
+6）Datanode3收到数据块写请求，写入本地磁盘，成功写完一个块后再向所有Namenode上报；因为DFSClient是并行的写数据块，所以步骤4、5、6不是严格意义上的串 行关系，而是并行的；  
 7）Datanode向Namenode上报收到块后，再告知DFSClient数据块成功写完；  
 8）至此一个数据块完整写完，如果需要写下一个数据块，则重复步骤1，直至所有数据块写完，再向Namenode发起关闭文件请求。
 
@@ -26,7 +26,7 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度�
 ![图3](https://github.com/liaosanity/Opendfs/raw/master/images/reading_process.png)  
 1）DFSClient向任意一Namenode发起读文件请求，问当前要读取的文件数据块分布在那些数据节点上；  
 2）Namenode返回可读的Datanode列表（IPs），每个数据块都返回所有3副本的IP，且一次请求尽可能返回多个数据块的IP列表（默认为10个块）；  
-3）DFSClient根据返回的IPs，先向IP1发起读数据块请求，如果失败，则从IPs列表中剔除，从而向IP2发起请求，直至数据块成功读取，如果向列表中所有IP发起请求    均失败，则向Namenode上报Datanode不可用，然后告知应用层由于块缺失而导致文件读取失败；  
+3）DFSClient根据返回的IPs，先向IP1发起读数据块请求，如果失败，则从IPs列表中剔除，从而向IP2发起请求，直至数据块成功读取，如果向列表中所有IP发起请求均失败，则向Namenode上报Datanode不可用，然后告知应用层由于块缺失而导致文件读取失败；  
 4）同步骤3依次读取文件的下一个块；  
 5）同步骤3依次读取文件的下一个块，直至读取文件的所有块。
 
