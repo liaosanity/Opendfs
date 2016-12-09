@@ -92,7 +92,7 @@ Secondary, run the app:
    sbin/datanode  
 
 # Running basic tests:  
-```Bash
+```
 $ sbin/dfscli  
 Usage: sbin/dfscli cmd...  
        -mkdir <path>   
