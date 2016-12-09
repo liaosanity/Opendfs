@@ -1,7 +1,7 @@
-[Chinese introduction](https://github.com/liaosanity/Opendfs/blob/master/README.zh_CN.md)
+[中文介绍](https://github.com/liaosanity/Opendfs/blob/master/README.zh_CN.md)
 
 # Overview
-Opendfs is written in C/C++, it is a distributed file storage system, which is highly fault-tolerant, high concurrency, high throughput, high performance, and easy to scale-out?and?scale-in, the structure of file and directory stored in the cluster, is very similar with the Linux file system.
+Opendfs is written in C/C++, it is a distributed file storage system, which is highly fault-tolerant, high concurrency, high throughput, high performance, and easy to scale-out and scale-in, the structure of file and directory stored in the cluster, is very similar with the Linux file system.
 
 Like the HDFS, an Opendfs cluster also contain DFSClient, Namenode, Datanode of three kinds of roles, a file will be cut into multiple data blocks storage to the cluster by DFSClient, while the Datanode is responsible to keep the data blocks, Namenode is responsible to maintain the file mapping relationship, which consists of how many pieces, and these blocks have been stored in which Datanode, an overall architecture of cluster is:
 ![image](https://github.com/liaosanity/Opendfs/raw/master/images/overall_architecture.png)
