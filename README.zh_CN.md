@@ -40,6 +40,7 @@ Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度�
     ./configure --prefix=/home/opendfs  
     make  
     make install
+
 ## 配置
   * 单机配置，即DFSClient、Namenode、Datanode都跑在同一台机器上，且Namenode、Datanode均为单点，各角色配置如下：
 ```
@@ -231,11 +232,13 @@ server.send_buff_len = 64KB;
 server.blk_sz = 256MB;
 server.blk_rep = 3;
 ```
+
 ## 启动 
  * Namenode：  
    sbin/namenode  
  * Datanode：  
    sbin/datanode  
+
 ## 使用
 ```
 $ sbin/dfscli
