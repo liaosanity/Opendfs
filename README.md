@@ -104,4 +104,4 @@ Usage: sbin/dfscli cmd...
 ```
 
 # Thanks
-Thank you [phxpaxos](https://github.com/tencent-wechat/phxpaxos), it make our work become easy.
+Thank you [phxpaxos](https://github.com/tencent-wechat/phxpaxos), it makes our work much easier.
