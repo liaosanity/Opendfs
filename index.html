@@ -1,1 +1,155 @@
-<h1>Opendfs</h1>
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="no-js">
+<head>
+    <meta charset="utf-8" />
+    <title>opendfs [A distributed file storage system, written in C/C++.]</title>
+    <meta name="generator" content="liaosanity"/>
+    <meta name="robots" content="index,follow"/>
+    <meta name="date" content="2016-12-15T15:41:18+0000"/>
+    <meta name="keywords" content="opendfs"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
+<body>
+
+<div class="logo">
+    <a href="https://github.com/liaosanity/Opendfs/" title="Home - Opendfs"><img src="https://github.com/liaosanity/Opendfs/raw/gh-pages/images/logo.png" alt="Opendfs" /></a>
+</div>
+
+<div class="navigation">
+    <ul>
+        <li><a href="https://github.com/liaosanity/Opendfs/">News</a></li>
+        <li><a href="https://github.com/liaosanity/Opendfs/">Documentation</a></li>
+        <li><a href="https://github.com/liaosanity/Opendfs/">Getting Started</a></li>
+        <li><a href="https://github.com/liaosanity/Opendfs/">Download</a></li>
+        <li><a href="https://github.com/liaosanity/Opendfs/">Examples</a></li>
+    </ul>
+</div>
+
+<div class="main-content"><div class="main-inner">
+    <div class="toc"></div>
+<h1 id="Overview">Overview</h1>
+
+<p>Opendfs is written in C/C++, it is a distributed file storage system, which is highly fault-tolerant, high concurrency, high throughput, high performance, 
+	and easy to scale-out and scale-in, the structure of file and directory stored in the cluster, is very similar with the Linux file system.
+
+Like the HDFS, an Opendfs cluster also contain DFSClient, Namenode, Datanode of three kinds of roles, a file will be cut into multiple data blocks storage to the cluster by DFSClient, 
+while the Datanode is responsible to keep the data blocks, Namenode is responsible to maintain the file mapping relationship, 
+which consists of how many pieces, and these blocks have been stored in which Datanode, an overall architecture of cluster is: </p>
+
+<p><img src="https://github.com/liaosanity/Opendfs/raw/master/images/overall_architecture.png" alt="architecture" padding: 5px 10px 5px 0px;" /></p>
+
+<h0>Each role is introduced as follows:</h0>
+<ul>
+  <li><strong>Namenode</strong> - the Metadata storage nodes, responsible for the management of metadata. 
+  	Each metadata operation(write, delete) is not only been updated in the memory, but also been logged to a local disk file(editlog), 
+  	before writing to disk it will be synchronized to other Namenodes through paxos protocol. 
+  	At a checkpoint time(configurable), each Namenode will do the same thing, dump the memory image to a local disk file(fsimage), 
+  	then the editlog is not always too big. Every time of rebooting Namenode, the metadata mapping relationship will be rebuilt through reconstruction of the fsimage and editlog.</li>
+  <li><strong>Datanode</strong> - the Data storage node, responsible for the management of the file data blocks. Each block will be regarded as a file stored to the local file system. 
+  	Datanode will register to all Namenodes when it starts, then it will report some informations(healthy, remaining capacity, activity connections, 
+  	the current storage blocks, and whether the block is damaged, etc) to all Namenodes through the heartbeat request, at the same time receive some operational orders from Namenode, 
+  	such as duplicate, move, delete block, etc.</li>
+  <li><strong>DFSClient</strong> - the important way of user interaction with the cluster. Provide some commands like Linux file system(ls, rm, rmr...), and the Posix interface etc. 
+  	Responsible to cut the file into multiple pieces, then write to Datanode in parallel. By reading data blocks from different Datanodes, 
+  	then merge them into a complete file before return to the application layer.</li>
+</ul>
+
+<h1 id="Features">Features</h1>
+<ul>
+	<li><strong>1)</strong> The files stored in Opendfs, their metadata and file content will be stored separately, Unlike HDFS, the Namenode can not only help scale systems, 
+		but can do it in a fault tolerant way. Through the paxos protocol, metadata can be synchronized between primary and standby in the end. In a network model processing, 
+		HDFS can only handle one connection at the same time in one thread, But Opendfs can handle multiple connections at the same time in one thread by epoll, 
+		so as to improve the efficiency of concurrent access of the network.</li>
+	<li><strong>2)</strong> Files in the cluster will be cut into multiple data blocks(each block 256M by default, configurable), each block will be stored in different Datanode in 3 copies(3 by default, configurable). 
+		When the block damage or loss, they will be automatic repaired, to ensure the reliability of the data storage. When sending a block to the DFSClient, it will be copied from disk to network directly by sendfile, 
+		to reduce user mode and kernel mode context switching, so as to improve the efficiency of data transmission.</li>
+	<li><strong>3)</strong> In HDFS, Before writing block to Datanode, DFSClient will create a Pipeline data flow(Datanode1 -> Datanode2 -> Datanode3) firstly, then transfer the data in serialization, 
+		but in Opendfs, data blocks will be writing in parallel.</li>
+</ul>
+
+<h1 id="A simple file writing process">A simple file writing process</h1>
+<p><img src="https://github.com/liaosanity/Opendfs/raw/master/images/writing_process.png" alt="writing_process" padding: 5px 10px 5px 0px;" /></p>
+
+<h1 id="A simple file reading process">A simple file reading process</h1>
+<p><img src="https://github.com/liaosanity/Opendfs/raw/master/images/reading_process.png" alt="reading_process" padding: 5px 10px 5px 0px;" /></p>
+
+<h1 id="Building">Building</h1>
+<ul>
+	<li><strong>Environment dependence:</strong> <br> Linux, GCC4.8+</li>
+	<li><strong>Software dependence:</strong> <br> yum -y install pcre-devel</li>
+	<li><strong>Source compile:</strong> <br> ./configure --prefix=/home/opendfs <br> make <br> make install</li>
+</ul>
+
+<h1 id="Running a real cluster">Running a real cluster</h1>
+<h0>We'll run all the servers on localhost, first need to create three configuration files. You can base yours off of xxx.conf.default, or the following will work:</h0>
+<ul>
+	<li><strong>namenode.conf</strong> <br> 
+		Server server;<br> 
+		server.daemon = ALLOW;<br> 
+    server.workers = 8;<br> 
+    server.connections = 65536;<br> 
+    server.bind_for_cli = "0.0.0.0:8000";<br> 
+    server.bind_for_dn = "0.0.0.0:8001";<br> 
+    server.my_paxos = "0.0.0.0:8002";<br> 
+    server.ot_paxos = "0.0.0.0:8002";<br> 
+    server.paxos_group_num = 1;<br> 
+    server.checkpoint_num = 10000;<br> 
+    server.index_num = 1000000;<br> 
+    server.editlog_dir = "/data00/namenode/editlog";<br> 
+    server.fsimage_dir = "/data00/namenode/fsimage";<br> 
+    server.error_log = "/data00/namenode/logs/error.log";<br> 
+    server.pid_file = "/data00/namenode/pid/namenode.pid";<br> 
+    server.coredump_dir = "/data00/namenode/coredump";<br> 
+    server.log_level = LOG_INFO;<br> 
+    server.recv_buff_len = 64KB;<br> 
+    server.send_buff_len = 64KB;<br> 
+    server.max_tqueue_len = 1000;<br> 
+    server.dn_timeout = 600;</li>
+	<li><strong>datanode.conf</strong> <br> 
+		Server server;<br> 
+    server.daemon = ALLOW;<br> 
+    server.workers = 8;<br> 
+    server.connections = 65536;<br> 
+    server.bind_for_cli = "0.0.0.0:8100";<br> 
+    server.ns_srv = "127.0.0.1:8001";<br> 
+    server.data_dir = "/data01/block,/data02/block,/data03/block";<br> 
+    server.error_log = "/data00/datanode/logs/error.log";<br> 
+    server.pid_file = "/data00/datanode/pid/datanode.pid";<br> 
+    server.coredump_dir = "/data00/datanode/coredump/";<br> 
+    server.log_level = LOG_INFO;<br> 
+    server.recv_buff_len = 64KB;<br> 
+    server.send_buff_len = 64KB;<br> 
+    server.max_tqueue_len = 1000;<br> 
+    server.heartbeat_interval = 3;<br> 
+    server.block_report_interval = 3600;</li>
+	<li><strong>dfscli.conf</strong> <br> 
+		Server server;<br> 
+    server.daemon = ALLOW;<br> 
+    server.namenode_addr = "127.0.0.1:8000";<br> 
+    server.error_log = "";<br> 
+    server.log_level = LOG_INFO;<br> 
+    server.recv_buff_len = 64KB;<br> 
+    server.send_buff_len = 64KB;<br> 
+    server.blk_sz = 256MB;<br> 
+    server.blk_rep = 3;</li>
+</ul>
+<h0>Secondary, run the app:</h0>
+<ul>
+	<li><strong>Namenode:</strong> sbin/namenode</li>
+	<li><strong>Datanode:</strong> sbin/datanode</li> 
+</ul>
+
+<h1 id="Running basic tests">Running basic tests</h1>
+<p>$ sbin/dfscli <br> 
+   Usage: sbin/dfscli cmd...<br>
+       -mkdir &ltpath&gt<br> 
+       -rmr &ltpath&gt<br>   
+       -ls &ltpath&gt<br>   
+       -put &ltlocal path&gt &ltremote path&gt<br>   
+       -get &ltremote path&gt &ltlocal path&gt<br>   
+       -rm &ltpath&gt</p>
+
+<h1>Welcome to Opendfs community, I hope you enjoy it.</h1>
+
+</body>
+</html>
