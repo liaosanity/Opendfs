@@ -8,7 +8,7 @@ Each role is introduced as follows:</p>
 <ul>
 <li>Namenode, the Metadata storage nodes, responsible for the management of metadata. Each metadata operation(write, delete) is not only been updated in the memory, but also been logged to a local disk file(editlog), before writing to disk it will be synchronized to other Namenodes through paxos protocol. At a checkpoint time(configurable), each Namenode will do the same thing, dump the memory image to a local disk file(fsimage), then the editlog is not always too big. Every time of rebooting Namenode, the metadata mapping relationship will be rebuilt through reconstruction of the fsimage and editlog.</li>
 <li>Datanode, the Data storage node, responsible for the management of the file data blocks. Each block will be regarded as a file stored to the local file system. Datanode will register to all Namenodes when it starts, then it will report some informations(healthy, remaining capacity, activity connections, the current storage blocks, and whether the block is damaged, etc) to all Namenodes through the heartbeat request, at the same time receive some operational orders from Namenode, such as duplicate, move, delete block, etc.</li>
-<li>DFSClient, the important way of user interaction with the cluster. Provide some commands like Linux file system(ls, rm, rmr鈥?, and the Posix interface etc. Responsible to cut the file into multiple pieces, then write to Datanode in parallel. By reading data blocks from different Datanodes, then merge them into a complete file before return to the application layer.</li>
+<li>DFSClient, the important way of user interaction with the cluster. Provide some commands like Linux file system(ls, rm, rmr..., and the Posix interface etc. Responsible to cut the file into multiple pieces, then write to Datanode in parallel. By reading data blocks from different Datanodes, then merge them into a complete file before return to the application layer.</li>
 </ul>
 <h1><a id="Features_12"></a>Features</h1>
 <ul>
@@ -32,7 +32,7 @@ make<br>
 make install</li>
 </ul>
 <h1><a id="Running_a_real_cluster_33"></a>Running a real cluster</h1>
-<p>We鈥檒l run all the servers on localhost, first need to create three configuration files. You can base yours off of xxx.conf.default, or the following will work:</p>
+<p>We'll run all the servers on localhost, first need to create three configuration files. You can base yours off of xxx.conf.default, or the following will work:</p>
 <ul>
 <li>
 <p>namenode.conf<br>
@@ -40,18 +40,18 @@ Server server;<br>
 server.daemon = ALLOW;<br>
 server.workers = 8;<br>
 server.connections = 65536;<br>
-server.bind_for_cli = 鈥?.0.0.0:8000鈥?<br>
-server.bind_for_dn = 鈥?.0.0.0:8001鈥?<br>
-server.my_paxos = 鈥?.0.0.0:8002鈥?<br>
-server.ot_paxos = 鈥?.0.0.0:8002鈥?<br>
+server.bind_for_cli = "0.0.0.0:8000";<br>
+server.bind_for_dn = "0.0.0.0:8001";<br>
+server.my_paxos = "0.0.0.0:8002";<br>
+server.ot_paxos = "0.0.0.0:8002";<br>
 server.paxos_group_num = 1;<br>
 server.checkpoint_num = 10000;<br>
 server.index_num = 1000000;<br>
-server.editlog_dir = 鈥?data00/namenode/editlog鈥?<br>
-server.fsimage_dir = 鈥?data00/namenode/fsimage鈥?<br>
-server.error_log = 鈥?data00/namenode/logs/error.log鈥?<br>
-server.pid_file = 鈥?data00/namenode/pid/namenode.pid鈥?<br>
-server.coredump_dir = 鈥?data00/namenode/coredump鈥?<br>
+server.editlog_dir = "/data00/namenode/editlog";<br>
+server.fsimage_dir = "/data00/namenode/fsimage";<br>
+server.error_log = "/data00/namenode/logs/error.log";<br>
+server.pid_file = "/data00/namenode/pid/namenode.pid";<br>
+server.coredump_dir = "/data00/namenode/coredump";<br>
 server.log_level = LOG_INFO;<br>
 server.recv_buff_len = 64KB;<br>
 server.send_buff_len = 64KB;<br>
@@ -64,12 +64,12 @@ Server server;<br>
 server.daemon = ALLOW;<br>
 server.workers = 8;<br>
 server.connections = 65536;<br>
-server.bind_for_cli = 鈥?.0.0.0:8100鈥?<br>
-server.ns_srv = 鈥?27.0.0.1:8001鈥?<br>
-server.data_dir = 鈥?data01/block,/data02/block,/data03/block鈥?<br>
-server.error_log = 鈥?data00/datanode/logs/error.log鈥?<br>
-server.pid_file = 鈥?data00/datanode/pid/datanode.pid鈥?<br>
-server.coredump_dir = 鈥?data00/datanode/coredump/鈥?<br>
+server.bind_for_cli = "0.0.0.0:8100";<br>
+server.ns_srv = "127.0.0.1:8001";<br>
+server.data_dir = "/data01/block,/data02/block,/data03/block";<br>
+server.error_log = "/data00/datanode/logs/error.log";<br>
+server.pid_file = "/data00/datanode/pid/datanode.pid";<br>
+server.coredump_dir = "/data00/datanode/coredump/";<br>
 server.log_level = LOG_INFO;<br>
 server.recv_buff_len = 64KB;<br>
 server.send_buff_len = 64KB;<br>
@@ -81,8 +81,8 @@ server.block_report_interval = 3600;</p>
 <p>dfscli.conf<br>
 Server server;<br>
 server.daemon = ALLOW;<br>
-server.namenode_addr = 鈥?27.0.0.1:8000鈥?<br>
-server.error_log = 鈥溾€?<br>
+server.namenode_addr = "127.0.0.1:8000";<br>
+server.error_log = ""<br>
 server.log_level = LOG_INFO;<br>
 server.recv_buff_len = 64KB;<br>
 server.send_buff_len = 64KB;<br>
