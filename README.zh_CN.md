@@ -1,3 +1,4 @@
+# 简介
 Opendfs是一个用C/C++编写的分布式文件存储系统，它具有高度容错、高并发、高吞吐量、易扩展，具有类似Linux文件系统的文件、目录结构等特点；  
 类似于HDFS，一个Opendfs集群也由DFSClient、Namenode、Datanode三种角色组成，一个文件将由DFSClient切分成多个数据块存储到集群上，而Datanode则负责保存这些数据块，Namenode负责维护文件由多少个块组成，这些块保存在哪个Datanode上的映射关系，集群整体架构如下图示：
 ![图1](https://github.com/liaosanity/Opendfs/raw/master/images/overall_architecture.png)  
